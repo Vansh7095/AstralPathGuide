@@ -1,2 +1,3 @@
 - [Appointment status normalization](appointment-status-normalization.md) — preserve legacy stored statuses while enforcing the public API's confirmed/rejected vocabulary.
 - [Clerk auth user ID normalization](clerk-auth-user-id-normalization.md) — normalize sessionClaims.userId and auth.userId at the server boundary.
+- [Onboarding database schema](onboarding-database-schema.md) — the signed-in profile request requires the current identity tables in development.
