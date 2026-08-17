@@ -29,3 +29,8 @@ externalPort = 8080
 [[ports]]
 localPort = 22672
 externalPort = 80
+
+[userenv]
+
+[userenv.production]
+ADMIN_CLERK_USER_IDS = "user_3I2bat5QvSIjhU8lpvMPA0pDaJx"
