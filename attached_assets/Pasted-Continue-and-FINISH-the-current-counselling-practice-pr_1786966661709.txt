@@ -1,0 +1,43 @@
+Continue and FINISH the current counselling-practice project.
+
+We now have fresh credits. Do not redesign the app or undo the fixes already completed.
+
+The remaining blocker is production admin configuration.
+
+1. Open the current preview/admin flow and determine the Clerk user ID for the currently signed-in intended admin account using the protected Clerk user-ID display that was already added.
+2. If the preview is signed out, use the existing Clerk sign-in flow and allow me to sign in. Do NOT guess, fabricate, derive, or substitute a Clerk ID.
+3. Once the exact current Clerk user ID is available, set the production environment variable:
+   ADMIN_CLERK_USER_IDS=<exact Clerk user ID>
+   Do not add quotes, spaces, or any other text.
+4. NEVER read, print, display, log, or expose any secret keys. In particular, do not output CLERK_SECRET_KEY, DATABASE_URL, or any other secret value.
+5. Verify that the admin API rejects unauthenticated users with 401.
+6. Verify that the intended signed-in Clerk user is accepted by the admin authorization check.
+7. Verify that an authenticated user whose ID is not in ADMIN_CLERK_USER_IDS is denied with 403, if this can be tested safely without creating another account.
+8. Re-run typechecks and production builds after configuration changes.
+9. Check the current deployment/production database state. If publishing is required to initialize production, do not invent production data or delete/reset development data.
+10. If the project is ready to publish, publish/deploy it using the existing project configuration.
+11. After deployment, smoke-test the live production routes and API, especially:
+    / 
+    /services
+    /faqs
+    /book
+    /contact
+    /admin
+    /api/healthz
+    /api/services
+    /api/faqs
+    /api/availability
+    /api/admin/appointments
+12. Fix any real errors you encounter rather than merely reporting them.
+13. Do not make unrelated UI or architectural changes.
+14. At the end, give me:
+    - the exact Clerk user ID found
+    - the exact value that was configured for ADMIN_CLERK_USER_IDS
+    - confirmation that no secret keys were exposed
+    - whether production DB/deployment was initialized
+    - build/typecheck results
+    - admin authorization result
+    - live smoke-test results
+    - any remaining blocker, if one genuinely remains.
+
+Do not stop at “sign in and tell me the ID” if the tooling can actually obtain it after I sign in. Continue until the project is genuinely finished.
