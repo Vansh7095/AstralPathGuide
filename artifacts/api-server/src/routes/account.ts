@@ -1,4 +1,5 @@
 import { Router, type IRouter } from "express";
+import { timingSafeEqual } from "node:crypto";
 import { and, desc, eq } from "drizzle-orm";
 import {
   CreateStaffRequestBody,
@@ -31,6 +32,13 @@ function asVerificationStatus(value: string | null | undefined): VerificationSta
 
 function asAccountRole(value: string): AccountRole {
   return value === "staff" || value === "admin" ? value : "client";
+}
+
+function matchesVerificationCode(provided: string | null | undefined, expected: string | undefined): boolean {
+  if (!provided || !expected) return false;
+  const providedBytes = Buffer.from(provided.trim(), "utf8");
+  const expectedBytes = Buffer.from(expected.trim(), "utf8");
+  return providedBytes.length === expectedBytes.length && timingSafeEqual(providedBytes, expectedBytes);
 }
 
 function profileResponse(
@@ -157,6 +165,13 @@ router.post("/me/staff-request", requireAuth, async (req, res): Promise<void> =>
   const parsed = CreateStaffRequestBody.safeParse(req.body);
   if (!parsed.success) {
     res.status(400).json({ error: "Please complete the professional verification details." });
+    return;
+  }
+  const expectedCode = parsed.data.requestedRole === "admin"
+    ? process.env.ADMIN_VERIFICATION_CODE
+    : process.env.STAFF_VERIFICATION_CODE;
+  if (!matchesVerificationCode(parsed.data.authorizationCode, expectedCode)) {
+    res.status(403).json({ error: "The verification code is not valid for this role." });
     return;
   }
   const [profile] = await db.select().from(userProfilesTable).where(eq(userProfilesTable.clerkUserId, userId)).limit(1);

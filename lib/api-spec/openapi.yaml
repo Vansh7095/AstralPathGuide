@@ -895,7 +895,9 @@ components:
         availabilityPreferences:
           type: ["string", "null"]
         authorizationCode:
-          type: ["string", "null"]
+          type: string
+          minLength: 1
+          description: Private practice-issued verification code for the requested role.
       required:
         - requestedRole
         - fullName
@@ -904,6 +906,7 @@ components:
         - qualification
         - expertise
         - languagesSpoken
+        - authorizationCode
     StaffRequest:
       type: object
       properties:

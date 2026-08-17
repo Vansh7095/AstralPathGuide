@@ -207,6 +207,7 @@ export const createStaffRequestBodyLanguagesSpokenMin = 2;
 
 
 
+
 export const CreateStaffRequestBody = zod.object({
   "requestedRole": zod.enum(['staff', 'admin']),
   "fullName": zod.string().min(createStaffRequestBodyFullNameMin),
@@ -218,7 +219,7 @@ export const CreateStaffRequestBody = zod.object({
   "expertise": zod.string().min(createStaffRequestBodyExpertiseMin),
   "languagesSpoken": zod.string().min(createStaffRequestBodyLanguagesSpokenMin),
   "availabilityPreferences": zod.string().nullish(),
-  "authorizationCode": zod.string().nullish()
+  "authorizationCode": zod.string().min(1).describe('Private practice-issued verification code for the requested role.')
 })
 
 export const CreateStaffRequestResponse = zod.object({

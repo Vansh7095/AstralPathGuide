@@ -255,8 +255,11 @@ export interface StaffRequestInput {
   languagesSpoken: string;
   /** @nullable */
   availabilityPreferences?: string | null;
-  /** @nullable */
-  authorizationCode?: string | null;
+  /**
+     * Private practice-issued verification code for the requested role.
+     * @minLength 1
+     */
+  authorizationCode: string;
 }
 
 export type StaffRequestRequestedRole = typeof StaffRequestRequestedRole[keyof typeof StaffRequestRequestedRole];
