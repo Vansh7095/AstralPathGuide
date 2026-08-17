@@ -3,7 +3,12 @@ import type { NextFunction, Request, Response } from "express";
 
 export function getUserId(req: Request) {
   const auth = getAuth(req);
-  return auth?.userId ?? null;
+  // Clerk can expose the signed-in id directly or through the session claims
+  // depending on the session/token shape. Support both so first-time users
+  // are not rejected when onboarding makes its initial profile request.
+  const claimsUserId = auth?.sessionClaims?.userId;
+  if (typeof claimsUserId === "string" && claimsUserId) return claimsUserId;
+  return typeof auth?.userId === "string" && auth.userId ? auth.userId : null;
 }
 
 export function requireAuth(req: Request, res: Response, next: NextFunction): void {

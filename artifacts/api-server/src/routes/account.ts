@@ -87,7 +87,7 @@ function staffRequestResponse(row: typeof staffRequestsTable.$inferSelect) {
   };
 }
 
-router.get("/me/profile", requireAuth, async (req, res): Promise<void> => {
+async function getMyProfile(req: Parameters<typeof requireAuth>[0], res: Parameters<typeof requireAuth>[1]): Promise<void> {
   const userId = getUserId(req);
   if (!userId) {
     res.status(401).json({ error: "Please sign in to access this account." });
@@ -96,7 +96,12 @@ router.get("/me/profile", requireAuth, async (req, res): Promise<void> => {
   const [profile] = await db.select().from(userProfilesTable).where(eq(userProfilesTable.clerkUserId, userId)).limit(1);
   const [staffRequest] = await db.select().from(staffRequestsTable).where(eq(staffRequestsTable.clerkUserId, userId)).limit(1);
   res.json(GetMyProfileResponse.parse(profileResponse(profile, staffRequest, userId)));
-});
+}
+
+// The generated client uses /me for the profile read; keep /me/profile as a
+// backwards-compatible alias for callers using the more explicit route.
+router.get("/me", requireAuth, getMyProfile);
+router.get("/me/profile", requireAuth, getMyProfile);
 
 router.patch("/me/profile", requireAuth, async (req, res): Promise<void> => {
   const userId = getUserId(req);
