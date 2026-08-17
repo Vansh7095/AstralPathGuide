@@ -61,7 +61,7 @@ import {
 } from '@workspace/api-client-react';
 import type { AdminFaq, AdminService, AppointmentStatusProperty, Faq, Service, SiteContent } from '@workspace/api-client-react';
 import { Link, Route, Switch, useLocation, Router as WouterRouter } from 'wouter';
-import { ClerkProvider, Show, SignIn, SignUp } from '@clerk/react';
+import { ClerkProvider, Show, SignIn, SignUp, useAuth } from '@clerk/react';
 import { publishableKeyFromHost } from '@clerk/react/internal';
 import { shadcn } from '@clerk/themes';
 import { ErrorBoundary } from '@/components/error-boundary';
@@ -333,6 +333,7 @@ function Admin() {
 }
 
 function AdminDashboard() {
+  const { userId } = useAuth();
   const [tab, setTab] = useState<AdminTab>('appointments');
   const [filter, setFilter] = useState<AppointmentFilter>('all');
   const appointmentsQuery = useGetAdminAppointments(filter === 'all' ? undefined : { status: filter }, { query: { queryKey: getGetAdminAppointmentsQueryKey(filter === 'all' ? undefined : { status: filter }) } });
@@ -358,9 +359,9 @@ function AdminDashboard() {
   const queryError = appointmentsQuery.error ?? availabilityQuery.error ?? servicesQuery.error ?? faqsQuery.error ?? messagesQuery.error;
 
   return <section className="page-wrap py-12 md:py-16" data-testid="admin-dashboard">
-    <div className="mb-8 flex flex-col justify-between gap-5 md:flex-row md:items-end">
+      <div className="mb-8 flex flex-col justify-between gap-5 md:flex-row md:items-end">
       <div><p className="eyebrow">Private workspace</p><h2 className="section-title mt-3 text-[hsl(var(--primary))]">Practice overview</h2><p className="mt-3 max-w-xl text-sm leading-6 text-[hsl(var(--muted-foreground))]">Changes here affect what visitors can request and what appears on the public site.</p></div>
-      {busy && <span className="inline-flex items-center gap-2 rounded-full bg-[hsl(var(--secondary))] px-4 py-2 text-xs font-bold text-[hsl(var(--primary))]"><span className="size-2 animate-pulse rounded-full bg-[hsl(var(--accent))]" /> Saving changes</span>}
+      <div className="flex flex-wrap items-center gap-3">{userId && <span className="rounded-full border border-[hsl(var(--border))] bg-[hsl(var(--card))] px-4 py-2 font-mono text-[11px] text-[hsl(var(--muted-foreground))]" title="Use this value for ADMIN_CLERK_USER_IDS">Clerk ID: {userId}</span>}{busy && <span className="inline-flex items-center gap-2 rounded-full bg-[hsl(var(--secondary))] px-4 py-2 text-xs font-bold text-[hsl(var(--primary))]"><span className="size-2 animate-pulse rounded-full bg-[hsl(var(--accent))]" /> Saving changes</span>}</div>
     </div>
     {queryError && <div className="mb-6"><DataState kind="error" message={errorText(queryError)} onRetry={() => { void appointmentsQuery.refetch(); void availabilityQuery.refetch(); void servicesQuery.refetch(); void faqsQuery.refetch(); void messagesQuery.refetch(); }} /></div>}
     <div className="mb-8 flex gap-2 overflow-x-auto border-b border-[hsl(var(--border))] pb-2" role="tablist" aria-label="Practice administration">
