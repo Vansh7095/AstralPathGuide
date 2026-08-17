@@ -1,0 +1,47 @@
+Continue from the current counselling practice project and finish the production setup.
+
+IMPORTANT:
+- Do NOT redesign or rewrite the existing app.
+- Do NOT delete, reset, or replace existing data.
+- Do NOT expose, print, or display any secret keys or sensitive environment variable values.
+- Work only on the remaining production configuration and verification.
+
+Tasks:
+
+1. Inspect the current production environment configuration without exposing secret values.
+2. Verify whether ADMIN_CLERK_USER_IDS is configured.
+3. If it is missing, do NOT guess a Clerk user ID.
+4. Use the existing protected signed-in admin user-ID display in /admin to determine the currently signed-in Clerk user ID if the environment/tooling allows it safely.
+5. Tell me the exact Clerk user ID you find and the exact value I should put into:
+   ADMIN_CLERK_USER_IDS
+   Do not reveal any Clerk secret key.
+
+6. Configure ADMIN_CLERK_USER_IDS in the appropriate production environment if you have a safe supported way to do so. If you cannot configure it automatically, clearly tell me exactly where I need to add it.
+
+7. Verify the production database setup. Do not delete or overwrite existing production data. If production has not been initialized yet, explain what will happen on Publish.
+
+8. Run the necessary typechecks/builds and fix only genuine errors.
+9. Restart the relevant workflows if required.
+10. Smoke-test:
+   - public homepage
+   - /services
+   - /faqs
+   - /book
+   - /contact
+   - /admin
+   - API health
+   - unsigned admin access = 401
+   - authorized admin access
+   - booking availability
+11. Verify that the production deployment is actually serving the latest build.
+
+At the end, give me a short checklist:
+- Clerk user ID
+- exact ADMIN_CLERK_USER_IDS value
+- whether it was configured
+- production DB status
+- build status
+- deployment status
+- anything I still need to click/do manually
+
+Do not spend credits on unnecessary redesigns or feature additions. The goal is to get this existing project safely production-ready today.
