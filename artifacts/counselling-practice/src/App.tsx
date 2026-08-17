@@ -152,6 +152,13 @@ function errorText(error: unknown) {
   return 'Something could not be loaded right now.';
 }
 
+function errorStatus(error: unknown) {
+  if (error && typeof error === 'object' && 'status' in error && typeof (error as { status?: unknown }).status === 'number') {
+    return (error as { status: number }).status;
+  }
+  return null;
+}
+
 function PlaceholderBadge() {
   return (
     <span className="inline-flex items-center gap-1.5 rounded-full border border-[hsl(var(--accent)/.45)] bg-[hsl(var(--accent)/.12)] px-2.5 py-1 text-[10px] font-bold uppercase tracking-[.12em] text-[hsl(var(--accent-foreground))]" data-testid="badge-unpublished">
@@ -357,6 +364,11 @@ function AdminDashboard() {
 
   const busy = appointmentMutation.isPending || availabilityMutation.isPending || serviceCreate.isPending || serviceUpdate.isPending || serviceDelete.isPending || faqCreate.isPending || faqUpdate.isPending || faqDelete.isPending;
   const queryError = appointmentsQuery.error ?? availabilityQuery.error ?? servicesQuery.error ?? faqsQuery.error ?? messagesQuery.error;
+  const accessDenied = [appointmentsQuery.error, availabilityQuery.error, servicesQuery.error, faqsQuery.error, messagesQuery.error].some((error) => errorStatus(error) === 401 || errorStatus(error) === 403);
+
+  if (accessDenied) {
+    return <section className="page-wrap py-20 md:py-28" data-testid="admin-access-denied"><div className="mx-auto max-w-xl rounded-[28px] border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-8 text-center md:p-12"><div className="mx-auto grid size-14 place-items-center rounded-2xl bg-[hsl(var(--secondary))] text-[hsl(var(--primary))]"><LockKeyhole size={25} /></div><h2 className="serif mt-7 text-3xl text-[hsl(var(--primary))]">Admin access is restricted</h2><p className="mt-4 leading-7 text-[hsl(var(--muted-foreground))]">This signed-in account is not authorised for practice administration. No private practice data is available to this account.</p><Link href="/" className="focus-ring mt-7 inline-flex rounded-full border border-[hsl(var(--primary)/.25)] px-5 py-3 text-sm font-bold text-[hsl(var(--primary))]" data-testid="link-admin-access-denied-home">Return to the public site</Link></div></section>;
+  }
 
   return <section className="page-wrap py-12 md:py-16" data-testid="admin-dashboard">
       <div className="mb-8 flex flex-col justify-between gap-5 md:flex-row md:items-end">

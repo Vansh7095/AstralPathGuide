@@ -1,5 +1,5 @@
 import { Router, type IRouter } from "express";
-import { and, eq, notInArray } from "drizzle-orm";
+import { and, eq, notInArray, sql } from "drizzle-orm";
 import {
   CreateAppointmentBody,
   CreateAppointmentResponse,
@@ -7,9 +7,11 @@ import {
   GetAvailabilityResponse,
 } from "@workspace/api-zod";
 import { db, appointmentsTable, servicesTable } from "@workspace/db";
-import { buildAvailableSlots } from "../lib/availability";
+import { buildAvailableSlots, inactiveAppointmentStatuses } from "../lib/availability";
 
 const router: IRouter = Router();
+
+class SlotConflictError extends Error {}
 
 router.get("/availability", async (req, res, next) => {
   try {
@@ -48,34 +50,37 @@ router.post("/appointments", async (req, res, next) => {
       return;
     }
 
-    const existing = await db
-      .select({ id: appointmentsTable.id })
-      .from(appointmentsTable)
-      .where(
-        and(
-          eq(appointmentsTable.preferredDate, preferredDate),
-          eq(appointmentsTable.preferredTime, input.preferredTime),
-          notInArray(appointmentsTable.status, ["cancelled", "rejected", "declined"]),
-        ),
-      )
-      .limit(1);
-    if (existing[0]) {
-      res.status(409).json({ error: "That time was just requested by someone else. Please choose another slot." });
-      return;
-    }
+    const created = await db.transaction(async (tx) => {
+      // Serialize writes for the same calendar slot. The availability read above
+      // is intentionally only a friendly pre-check; this lock is the safety boundary.
+      await tx.execute(sql`SELECT pg_advisory_xact_lock(hashtextextended(${`${preferredDate}|${input.preferredTime}`}, 0))`);
+      const existing = await tx
+        .select({ id: appointmentsTable.id })
+        .from(appointmentsTable)
+        .where(
+          and(
+            eq(appointmentsTable.preferredDate, preferredDate),
+            eq(appointmentsTable.preferredTime, input.preferredTime),
+            notInArray(appointmentsTable.status, [...inactiveAppointmentStatuses]),
+          ),
+        )
+        .limit(1);
+      if (existing[0]) throw new SlotConflictError();
 
-    const [created] = await db
-      .insert(appointmentsTable)
-      .values({
-        serviceId: input.serviceId,
-        preferredDate,
-        preferredTime: input.preferredTime,
-        name: input.name.trim(),
-        email: input.email.trim().toLowerCase(),
-        phone: input.phone.trim(),
-        message: input.message?.trim() || null,
-      })
-      .returning();
+      const [inserted] = await tx
+        .insert(appointmentsTable)
+        .values({
+          serviceId: input.serviceId,
+          preferredDate,
+          preferredTime: input.preferredTime,
+          name: input.name.trim(),
+          email: input.email.trim().toLowerCase(),
+          phone: input.phone.trim(),
+          message: input.message?.trim() || null,
+        })
+        .returning();
+      return inserted;
+    });
 
     const response = {
       id: created.id,
@@ -92,6 +97,10 @@ router.post("/appointments", async (req, res, next) => {
     };
     res.status(201).json(CreateAppointmentResponse.parse(response));
   } catch (error) {
+    if (error instanceof SlotConflictError) {
+      res.status(409).json({ error: "That time was just requested by someone else. Please choose another slot." });
+      return;
+    }
     req.log.error({ err: error }, "Failed to create appointment request");
     next(error);
   }

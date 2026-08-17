@@ -1,5 +1,5 @@
 import { Router, type IRouter } from "express";
-import { and, asc, desc, eq, notInArray } from "drizzle-orm";
+import { and, asc, desc, eq, inArray, notInArray, sql } from "drizzle-orm";
 import {
   CreateAdminFaqBody,
   CreateAdminServiceBody,
@@ -23,10 +23,12 @@ import {
   servicesTable,
 } from "@workspace/db";
 import { requireAdmin } from "../middlewares/auth";
-import { buildAvailableSlots, getAvailabilitySettings } from "../lib/availability";
+import { buildAvailableSlots, getAvailabilitySettings, inactiveAppointmentStatuses } from "../lib/availability";
 
 const router: IRouter = Router();
 router.use("/admin", requireAdmin);
+
+class SlotConflictError extends Error {}
 
 function appointmentResponse(row: typeof appointmentsTable.$inferSelect, serviceName: string) {
   return {
@@ -49,7 +51,9 @@ router.get("/admin/appointments", async (req, res, next): Promise<void> => {
       .select({ appointment: appointmentsTable, serviceName: servicesTable.name })
       .from(appointmentsTable)
       .innerJoin(servicesTable, eq(appointmentsTable.serviceId, servicesTable.id))
-      .where(query.data.status ? eq(appointmentsTable.status, query.data.status === "confirmed" ? "approved" : query.data.status === "rejected" ? "declined" : query.data.status) : undefined)
+      .where(query.data.status
+        ? inArray(appointmentsTable.status, query.data.status === "confirmed" ? ["approved", "confirmed"] : query.data.status === "rejected" ? ["declined", "rejected"] : [query.data.status])
+        : undefined)
       .orderBy(desc(appointmentsTable.createdAt));
     res.json(GetAdminAppointmentsResponse.parse(rows.map(({ appointment, serviceName }) => appointmentResponse(appointment, serviceName))));
   } catch (error) {
@@ -86,14 +90,34 @@ router.patch("/admin/appointments/:id", async (req, res, next): Promise<void> =>
         return;
       }
     }
-    const [updated] = await db.update(appointmentsTable).set({
-      preferredDate,
-      preferredTime,
-      status: parsed.data.status === "confirmed" ? "approved" : parsed.data.status === "rejected" ? "declined" : parsed.data.status ?? current.status,
-    }).where(eq(appointmentsTable.id, id)).returning();
+    const updated = await db.transaction(async (tx) => {
+      await tx.execute(sql`SELECT pg_advisory_xact_lock(hashtextextended(${`${preferredDate}|${preferredTime}`}, 0))`);
+      const conflict = await tx
+        .select({ id: appointmentsTable.id })
+        .from(appointmentsTable)
+        .where(and(
+          eq(appointmentsTable.preferredDate, preferredDate),
+          eq(appointmentsTable.preferredTime, preferredTime),
+          notInArray(appointmentsTable.status, [...inactiveAppointmentStatuses]),
+        ))
+        .limit(2);
+      if (conflict.some((appointment) => appointment.id !== id)) {
+        throw new SlotConflictError();
+      }
+      const [saved] = await tx.update(appointmentsTable).set({
+        preferredDate,
+        preferredTime,
+        status: parsed.data.status === "confirmed" ? "approved" : parsed.data.status === "rejected" ? "declined" : parsed.data.status ?? current.status,
+      }).where(eq(appointmentsTable.id, id)).returning();
+      return saved;
+    });
     const [service] = await db.select({ name: servicesTable.name }).from(servicesTable).where(eq(servicesTable.id, updated.serviceId)).limit(1);
     res.json(GetAdminAppointmentsResponse.element.parse(appointmentResponse(updated, service?.name ?? "Service")));
   } catch (error) {
+    if (error instanceof SlotConflictError) {
+      res.status(409).json({ error: "That time is already booked." });
+      return;
+    }
     req.log.error({ err: error }, "Failed to update admin appointment");
     next(error);
   }

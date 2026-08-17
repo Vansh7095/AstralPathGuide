@@ -1,0 +1,166 @@
+Continue and FINISH the existing counselling practice website. Do NOT redesign or replace the existing public website. Treat the current deployed build as the baseline and make only the changes necessary to finish production setup and verify everything.
+
+IMPORTANT:
+- Preserve the current visual design, routes, content structure, API, database, and booking system unless a change is required to fix a real issue.
+- Do not invent counsellor credentials, testimonials, prices, contact information, qualifications, or medical/clinical claims.
+- Do not expose Clerk secret keys, API keys, database credentials, or any other secrets.
+- Do not create insecure client-side authentication.
+- Do not reset or delete existing production/development data.
+- Do not make unnecessary dependency upgrades.
+
+CURRENT STATE:
+- The counselling practice website builds successfully.
+- API server production build succeeds.
+- Frontend Vite production build succeeds.
+- PostgreSQL development data has been copied to production.
+- Public booking, availability, contact forms, and admin APIs exist.
+- Clerk authentication has been integrated.
+- Admin dashboard exists.
+- ADMIN_CLERK_USER_IDS is intended to restrict the dashboard.
+- A protected admin-only display of the currently signed-in Clerk user ID was added because the Clerk user directory is unavailable from this workspace.
+- The previous agent ran out of credits before completing the final production configuration.
+
+TASK 1 — VERIFY AUTHENTICATION
+Inspect the existing Clerk implementation carefully.
+
+The admin route must behave as follows:
+1. Signed-out visitor → cannot access admin dashboard.
+2. Signed-in normal Clerk user → denied if ADMIN_CLERK_USER_IDS is configured and their ID isn't listed.
+3. Signed-in user whose Clerk user ID is listed in ADMIN_CLERK_USER_IDS → full admin access.
+4. Never expose Clerk secret keys or tokens in the UI, API responses, logs, or source.
+5. Do not weaken authentication just to make the admin page work.
+
+Do NOT guess my Clerk user ID.
+
+If the application already has the protected "current Clerk user ID" display, keep it and make sure it is visible only after authentication inside the admin area.
+
+TASK 2 — ADMIN_CLERK_USER_IDS
+Inspect the existing environment-variable implementation and tell me exactly how it expects multiple IDs to be formatted.
+
+Do not invent a value.
+
+If the current signed-in Clerk user ID can safely be obtained through the application itself, display it only to the authenticated user in the protected admin setup area.
+
+Do NOT display or return any secret keys.
+
+TASK 3 — PRODUCTION CONFIGURATION
+Verify that all required production environment variables are actually referenced correctly.
+
+Check:
+- DATABASE_URL
+- Clerk publishable configuration
+- Clerk secret configuration
+- ADMIN_CLERK_USER_IDS
+- PORT
+- BASE_PATH
+- any other variables actually required by this project
+
+Do not print secret values.
+
+If a required variable is missing, clearly identify ONLY the variable name and what I need to configure manually.
+
+TASK 4 — PRODUCTION DATABASE
+Verify the production database schema matches the current application.
+
+Make sure these features work:
+- practice settings
+- services
+- FAQs
+- appointments
+- contact messages
+- availability
+- unavailable dates
+- working days
+- breaks
+- session duration
+
+Do not delete existing records.
+
+TASK 5 — BOOKING SAFETY
+Verify that appointment booking correctly respects:
+- working days
+- unavailable dates
+- breaks
+- session duration
+- existing active/pending appointments
+- approved/confirmed appointments
+- cancelled/declined appointments
+
+Prevent double booking of the same slot.
+
+Malformed booking/contact requests must return friendly 400-level errors and must never expose stack traces or internal implementation details.
+
+TASK 6 — ADMIN DASHBOARD
+Verify that the existing admin dashboard can:
+- view appointment requests
+- filter appointments
+- change appointment status
+- reschedule appointments
+- view availability
+- edit working days
+- edit breaks
+- edit session duration
+- add/remove unavailable dates
+- create/edit/disable services
+- mark placeholder services
+- create/edit/publish FAQs
+- view private contact messages
+
+Keep private data protected behind authentication and authorization.
+
+TASK 7 — PUBLIC WEBSITE
+Do a final smoke test of:
+/
+ /about
+ /services
+ /how-it-works
+ /faqs
+ /contact
+ /book
+ /privacy
+ /terms
+ /disclaimer
+ /admin
+
+Verify desktop and mobile layouts.
+
+Do not redesign the site unless a real functional bug requires it.
+
+TASK 8 — CONTENT SAFETY
+Ensure placeholder/demo content cannot accidentally appear as real counsellor information.
+
+Any unpublished placeholder should be clearly marked internally/admin-side and must not falsely claim:
+- qualifications
+- professional registration
+- years of experience
+- testimonials
+- prices
+- address
+- phone number
+- email
+- treatment outcomes
+
+TASK 9 — FINAL BUILD
+Run:
+- frontend typecheck
+- backend typecheck
+- library typechecks
+- production frontend build
+- production API build
+
+Fix only actual errors.
+
+Warnings such as bundle-size warnings or sourcemap warnings should not be "fixed" by unnecessarily changing the architecture unless they actually break production.
+
+TASK 10 — FINAL DEPLOYMENT CHECK
+After everything passes, restart/redeploy the application if necessary and verify the deployed service starts successfully.
+
+At the end, give me a concise final report containing:
+1. What was fixed.
+2. What was verified.
+3. Whether production is ready.
+4. Any environment variables I still need to manually configure — names only, never secret values.
+5. Exactly where/how I should put ADMIN_CLERK_USER_IDS.
+6. Any remaining non-blocking warnings.
+
+DO NOT stop after merely inspecting files. Actually fix genuine issues and verify the result.

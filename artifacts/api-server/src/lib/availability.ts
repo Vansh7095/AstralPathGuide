@@ -1,6 +1,8 @@
 import { and, eq, notInArray } from "drizzle-orm";
 import { db, appointmentsTable, practiceSettingsTable } from "@workspace/db";
 
+export const inactiveAppointmentStatuses = ["cancelled", "declined", "rejected", "completed"] as const;
+
 export const defaultAvailability = {
   workingDays: [1, 2, 3, 4, 5],
   workingStart: "10:00",
@@ -38,7 +40,7 @@ export async function buildAvailableSlots(date: string) {
   const booked = await db
     .select({ preferredTime: appointmentsTable.preferredTime })
     .from(appointmentsTable)
-    .where(and(eq(appointmentsTable.preferredDate, date), notInArray(appointmentsTable.status, ["cancelled", "rejected"])));
+    .where(and(eq(appointmentsTable.preferredDate, date), notInArray(appointmentsTable.status, [...inactiveAppointmentStatuses])));
   const bookedTimes = new Set(booked.map((appointment) => appointment.preferredTime.split("–")[0]));
 
   const slots: { start: string; end: string }[] = [];

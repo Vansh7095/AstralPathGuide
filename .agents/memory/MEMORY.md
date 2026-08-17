@@ -1,0 +1,1 @@
+- [Appointment status normalization](appointment-status-normalization.md) — preserve legacy stored statuses while enforcing the public API's confirmed/rejected vocabulary.
