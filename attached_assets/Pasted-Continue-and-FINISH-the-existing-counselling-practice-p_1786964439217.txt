@@ -1,0 +1,282 @@
+Continue and FINISH the existing counselling-practice project that has already been built in this workspace.
+
+IMPORTANT:
+
+* Do NOT rebuild the project from scratch.
+* Do NOT replace the existing frontend/design.
+* Do NOT remove working features.
+* Inspect the existing code and continue from its current state.
+* The previous Replit Agent ran out of quota while finishing the project.
+* I need this project completed TODAY.
+
+## CURRENT KNOWN PROBLEM
+
+The last agent introduced Clerk authentication and then the API server started failing with:
+
+`Could not resolve "zod"`
+
+in:
+
+`artifacts/api-server/src/app.ts`
+
+Fix this first.
+
+The previous project was already successfully typechecked and built before the final authentication changes, so preserve the existing working code wherever possible.
+
+## EXISTING PROJECT FEATURES
+
+The project already contains:
+
+* Professional counselling practice website
+* Responsive frontend
+* Home page
+* About page
+* Services page
+* How It Works page
+* FAQ page
+* Contact page
+* Appointment booking page
+* Privacy page
+* Terms page
+* Disclaimer page
+* Admin page foundation
+* PostgreSQL database
+* Appointment API
+* Availability API
+* Contact-message API
+* Site-content API
+* Service API
+* FAQ API
+* Placeholder-safe content
+* WhatsApp/contact CTAs
+* SEO setup
+* Mobile navigation
+* Clerk authentication integration in progress
+
+Do NOT redesign these unnecessarily.
+
+## TASK 1 — FIX THE CURRENT BUILD
+
+First:
+
+1. Inspect package.json files and pnpm-workspace.yaml.
+2. Determine why `zod` cannot be resolved from `artifacts/api-server/src/app.ts`.
+3. Fix the dependency correctly at the workspace/package level.
+4. Run:
+
+   * API typecheck
+   * frontend typecheck
+   * library typecheck
+   * production build
+5. Do not simply suppress the error or mark zod as external.
+
+## TASK 2 — VERIFY CLERK
+
+Continue the Clerk integration that the previous agent started.
+
+Verify:
+
+* Clerk dependencies are correctly installed.
+* Frontend Clerk provider works.
+* `/admin` is protected.
+* Unauthenticated users cannot access admin functionality.
+* Authentication is enforced server-side, not only by hiding the page.
+* Admin API operations are protected.
+* No private appointment/contact data is publicly accessible.
+
+Do not create a homemade password authentication system.
+
+If Clerk requires configuration, use the project's supported Replit/Clerk integration rather than inventing a custom authentication implementation.
+
+## TASK 3 — FINISH ADMIN DASHBOARD
+
+The current `/admin` page is only an admin-ready foundation.
+
+Turn it into a useful admin dashboard.
+
+It should allow the authenticated counsellor/admin to:
+
+### Appointments
+
+* View appointments
+* Filter by status
+* View appointment details
+* Approve
+* Reject
+* Cancel
+* Reschedule
+* Mark completed
+
+Statuses can be:
+
+* pending
+* confirmed
+* cancelled
+* completed
+* rejected
+
+### Availability
+
+Allow the admin to configure:
+
+* Working days
+* Working hours
+* Breaks
+* Unavailable dates
+* Session duration
+
+The public booking system must respect availability.
+
+Prevent obvious double booking.
+
+### Services
+
+Allow admin to:
+
+* Add service
+* Edit service
+* Enable/disable service
+* Set description
+* Set duration
+* Set price
+
+### FAQs
+
+Allow admin to:
+
+* Add
+* Edit
+* Delete
+* Enable/disable
+
+FAQs.
+
+Do not expose admin data publicly.
+
+## TASK 4 — APPOINTMENT SYSTEM
+
+Verify the existing booking system.
+
+A visitor should be able to:
+
+1. Select service
+2. Select date
+3. Select available time
+4. Enter name
+5. Enter email
+6. Enter phone
+7. Optionally enter a short message
+8. Submit appointment request
+9. Receive a clear confirmation
+
+The system should:
+
+* Validate input
+* Store the appointment
+* Prevent obvious duplicate bookings
+* Return friendly validation errors
+* Never expose database errors to users
+
+Invalid input must return a proper 400-level response instead of 500.
+
+Do NOT ask users to submit detailed medical history or highly sensitive information through the normal booking form.
+
+## TASK 5 — CONTACT FORM
+
+Verify:
+
+* Contact form works
+* Data is stored
+* Validation works
+* Invalid data returns friendly errors
+* Admin can view contact messages if the existing architecture supports it
+
+## TASK 6 — CONTENT
+
+Keep all placeholder content clearly marked.
+
+DO NOT invent:
+
+* Counsellor qualifications
+* Certifications
+* Experience
+* Testimonials
+* Prices
+* Phone numbers
+* Addresses
+* Medical claims
+* Treatment claims
+
+The actual counsellor information will be added later.
+
+## TASK 7 — SECURITY
+
+Check:
+
+* Server-side authorization
+* Password/security handled by Clerk
+* Input validation
+* Rate limiting where appropriate
+* Secure cookies/session handling
+* No secrets committed
+* No database credentials exposed
+* No private appointment information in public API responses
+* No admin endpoints accessible without authorization
+
+## TASK 8 — PRODUCTION QUALITY
+
+Run:
+
+* TypeScript checks
+* Production builds
+* API tests
+* Frontend tests where applicable
+
+Fix all errors you encounter.
+
+Check:
+
+* Mobile layout
+* Desktop layout
+* Navigation
+* Forms
+* Booking flow
+* Admin authentication
+* Admin dashboard
+* API connectivity
+* Database connectivity
+
+Do not stop after fixing only the first error.
+
+Keep going until the application is actually working.
+
+## IMPORTANT SCOPE RULE
+
+Do NOT add unnecessary features such as:
+
+* Client social login
+* Apple login
+* Facebook login
+* Video calling
+* Chat
+* Medical records
+* Online payments
+* Complex patient dashboards
+
+unless the existing project already requires them.
+
+For this first version, prioritize:
+
+PUBLIC WEBSITE + APPOINTMENT BOOKING + CONTACT + ADMIN DASHBOARD + AVAILABILITY + SECURE ADMIN AUTHENTICATION.
+
+## FINAL REQUIREMENT
+
+At the end, give me a concise report containing:
+
+1. What you fixed
+2. What features are working
+3. What tests/builds passed
+4. Any remaining issues
+5. Any environment variables or setup still required before deployment
+
+Do not claim something works unless you actually tested it.

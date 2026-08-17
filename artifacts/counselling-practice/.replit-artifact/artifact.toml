@@ -1,0 +1,28 @@
+kind = "web"
+previewPath = "/"
+title = "Counselling Practice"
+description = "A calm, trustworthy counselling practice website with editable practice information, services, FAQs, contact details, appointment requests, privacy-first messaging, and an admin-ready foundation."
+version = "1.0.0"
+id = "artifacts/counselling-practice"
+router = "path"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 22672
+
+[services.development]
+run = "pnpm --filter @workspace/counselling-practice run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/counselling-practice", "run", "build" ]
+serve = "static"
+publicDir = "artifacts/counselling-practice/dist/public"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "22672"
+BASE_PATH = "/"

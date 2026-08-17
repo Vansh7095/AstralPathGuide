@@ -10,6 +10,12 @@ servers:
 tags:
   - name: health
     description: Health operations
+  - name: content
+    description: Public practice content
+  - name: booking
+    description: Appointment availability and requests
+  - name: contact
+    description: Public contact messages
 paths:
   /healthz:
     get:
@@ -24,7 +30,393 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+  /content:
+    get:
+      operationId: getSiteContent
+      tags: [content]
+      summary: Get public practice content
+      responses:
+        "200":
+          description: Public practice content
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SiteContent"
+  /services:
+    get:
+      operationId: getServices
+      tags: [content]
+      summary: List published counselling services
+      responses:
+        "200":
+          description: Published services
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Service"
+  /faqs:
+    get:
+      operationId: getFaqs
+      tags: [content]
+      summary: List frequently asked questions
+      responses:
+        "200":
+          description: Published FAQs
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Faq"
+  /availability:
+    get:
+      operationId: getAvailability
+      tags: [booking]
+      summary: Get available appointment slots
+      parameters:
+        - name: date
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date
+      responses:
+        "200":
+          description: Available appointment slots
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/TimeSlot"
+  /appointments:
+    post:
+      operationId: createAppointment
+      tags: [booking]
+      summary: Request an appointment
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AppointmentInput"
+      responses:
+        "201":
+          description: Appointment request created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Appointment"
+        "409":
+          description: Slot is no longer available
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /contact-messages:
+    post:
+      operationId: createContactMessage
+      tags: [contact]
+      summary: Send a contact message
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ContactMessageInput"
+      responses:
+        "201":
+          description: Contact message received
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ContactMessage"
+  /admin/appointments:
+    get:
+      operationId: getAdminAppointments
+      tags: [admin]
+      summary: List private appointment requests
+      security: [{ clerkSession: [] }]
+      parameters:
+        - name: status
+          in: query
+          required: false
+          schema:
+            $ref: "#/components/schemas/AppointmentStatus"
+      responses:
+        "200":
+          description: Private appointments
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/AdminAppointment"
+        "401":
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /admin/appointments/{id}:
+    patch:
+      operationId: updateAdminAppointment
+      tags: [admin]
+      summary: Update an appointment status or time
+      security: [{ clerkSession: [] }]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AdminAppointmentUpdate"
+      responses:
+        "200":
+          description: Updated appointment
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminAppointment"
+        "400":
+          description: Invalid update
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Appointment not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /admin/availability:
+    get:
+      operationId: getAdminAvailability
+      tags: [admin]
+      summary: Get practice availability settings
+      security: [{ clerkSession: [] }]
+      responses:
+        "200":
+          description: Availability settings
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AvailabilitySettings"
+    patch:
+      operationId: updateAdminAvailability
+      tags: [admin]
+      summary: Update practice availability settings
+      security: [{ clerkSession: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AvailabilitySettingsInput"
+      responses:
+        "200":
+          description: Updated availability settings
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AvailabilitySettings"
+        "400":
+          description: Invalid settings
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /admin/services:
+    get:
+      operationId: getAdminServices
+      tags: [admin]
+      summary: List all services
+      security: [{ clerkSession: [] }]
+      responses:
+        "200":
+          description: All services
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/AdminService"
+    post:
+      operationId: createAdminService
+      tags: [admin]
+      summary: Create a service
+      security: [{ clerkSession: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ServiceInput"
+      responses:
+        "201":
+          description: Created service
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminService"
+  /admin/services/{id}:
+    patch:
+      operationId: updateAdminService
+      tags: [admin]
+      summary: Update a service
+      security: [{ clerkSession: [] }]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ServiceInput"
+      responses:
+        "200":
+          description: Updated service
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminService"
+        "404":
+          description: Service not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    delete:
+      operationId: deleteAdminService
+      tags: [admin]
+      summary: Delete a service
+      security: [{ clerkSession: [] }]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Service deleted
+  /admin/faqs:
+    get:
+      operationId: getAdminFaqs
+      tags: [admin]
+      summary: List all FAQs
+      security: [{ clerkSession: [] }]
+      responses:
+        "200":
+          description: All FAQs
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/AdminFaq"
+    post:
+      operationId: createAdminFaq
+      tags: [admin]
+      summary: Create an FAQ
+      security: [{ clerkSession: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/FaqInput"
+      responses:
+        "201":
+          description: Created FAQ
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminFaq"
+  /admin/faqs/{id}:
+    patch:
+      operationId: updateAdminFaq
+      tags: [admin]
+      summary: Update an FAQ
+      security: [{ clerkSession: [] }]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/FaqInput"
+      responses:
+        "200":
+          description: Updated FAQ
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminFaq"
+        "404":
+          description: FAQ not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    delete:
+      operationId: deleteAdminFaq
+      tags: [admin]
+      summary: Delete an FAQ
+      security: [{ clerkSession: [] }]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: FAQ deleted
+  /admin/contact-messages:
+    get:
+      operationId: getAdminContactMessages
+      tags: [admin]
+      summary: List private contact messages
+      security: [{ clerkSession: [] }]
+      responses:
+        "200":
+          description: Private contact messages
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/AdminContactMessage"
 components:
+  securitySchemes:
+    clerkSession:
+      type: http
+      scheme: bearer
+      bearerFormat: Clerk session
   schemas:
     HealthStatus:
       type: object
@@ -33,4 +425,363 @@ components:
           type: string
       required:
         - status
+    SiteContent:
+      type: object
+      properties:
+        practiceName:
+          type: string
+        counsellorName:
+          type: string
+        heroTitle:
+          type: string
+        heroDescription:
+          type: string
+        about:
+          type: string
+        qualifications:
+          type: array
+          items:
+            type: string
+        languages:
+          type: array
+          items:
+            type: string
+        location:
+          type: string
+        onlineAvailable:
+          type: boolean
+        phone:
+          type: ["string", "null"]
+        whatsapp:
+          type: ["string", "null"]
+        email:
+          type: ["string", "null"]
+        address:
+          type: ["string", "null"]
+        workingHours:
+          type: array
+          items:
+            type: string
+        timezone:
+          type: string
+        currency:
+          type: string
+        emergencyDisclaimer:
+          type: string
+        isPlaceholder:
+          type: boolean
+      required:
+        - practiceName
+        - counsellorName
+        - heroTitle
+        - heroDescription
+        - about
+        - qualifications
+        - languages
+        - location
+        - onlineAvailable
+        - phone
+        - whatsapp
+        - email
+        - address
+        - workingHours
+        - timezone
+        - currency
+        - emergencyDisclaimer
+        - isPlaceholder
+    Service:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        description:
+          type: string
+        suitableFor:
+          type: string
+        sessionDetails:
+          type: string
+        durationMinutes:
+          type: integer
+        priceInr:
+          type: ["number", "null"]
+        isPlaceholder:
+          type: boolean
+      required:
+        - id
+        - name
+        - description
+        - suitableFor
+        - sessionDetails
+        - durationMinutes
+        - priceInr
+        - isPlaceholder
+    Faq:
+      type: object
+      properties:
+        id:
+          type: integer
+        question:
+          type: string
+        answer:
+          type: string
+      required:
+        - id
+        - question
+        - answer
+    TimeSlot:
+      type: object
+      properties:
+        start:
+          type: string
+        end:
+          type: string
+      required:
+        - start
+        - end
+    AppointmentInput:
+      type: object
+      properties:
+        serviceId:
+          type: integer
+        preferredDate:
+          type: string
+          format: date
+        preferredTime:
+          type: string
+        name:
+          type: string
+          minLength: 2
+        email:
+          type: string
+          format: email
+        phone:
+          type: string
+          minLength: 7
+        message:
+          type: ["string", "null"]
+          maxLength: 500
+      required:
+        - serviceId
+        - preferredDate
+        - preferredTime
+        - name
+        - email
+        - phone
+    Appointment:
+      type: object
+      properties:
+        id:
+          type: integer
+        serviceId:
+          type: integer
+        serviceName:
+          type: string
+        preferredDate:
+          type: string
+          format: date
+        preferredTime:
+          type: string
+        name:
+          type: string
+        email:
+          type: string
+        phone:
+          type: string
+        message:
+          type: ["string", "null"]
+        status:
+          type: string
+          enum: [pending, confirmed, cancelled, completed, rejected]
+        createdAt:
+          type: string
+      required:
+        - id
+        - serviceId
+        - serviceName
+        - preferredDate
+        - preferredTime
+        - name
+        - email
+        - phone
+        - message
+        - status
+        - createdAt
+    AppointmentStatus:
+      type: string
+      enum: [pending, confirmed, cancelled, completed, rejected]
+    AdminAppointment:
+      allOf:
+        - $ref: "#/components/schemas/Appointment"
+    AdminAppointmentUpdate:
+      type: object
+      properties:
+        status:
+          $ref: "#/components/schemas/AppointmentStatus"
+        preferredDate:
+          type: string
+          format: date
+        preferredTime:
+          type: string
+      minProperties: 1
+    AvailabilitySettings:
+      type: object
+      properties:
+        workingDays:
+          type: array
+          items:
+            type: integer
+            minimum: 0
+            maximum: 6
+        workingStart:
+          type: string
+        workingEnd:
+          type: string
+        breakStart:
+          type: ["string", "null"]
+        breakEnd:
+          type: ["string", "null"]
+        unavailableDates:
+          type: array
+          items:
+            type: string
+            format: date
+        sessionDurationMinutes:
+          type: integer
+          minimum: 15
+          maximum: 240
+      required:
+        - workingDays
+        - workingStart
+        - workingEnd
+        - breakStart
+        - breakEnd
+        - unavailableDates
+        - sessionDurationMinutes
+    AvailabilitySettingsInput:
+      $ref: "#/components/schemas/AvailabilitySettings"
+    ServiceInput:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 2
+        description:
+          type: string
+          minLength: 2
+        suitableFor:
+          type: string
+        sessionDetails:
+          type: string
+        durationMinutes:
+          type: integer
+          minimum: 15
+          maximum: 240
+        priceInr:
+          type: ["number", "null"]
+        isEnabled:
+          type: boolean
+        isPlaceholder:
+          type: boolean
+      required:
+        - name
+        - description
+        - suitableFor
+        - sessionDetails
+        - durationMinutes
+        - priceInr
+        - isEnabled
+        - isPlaceholder
+    AdminService:
+      allOf:
+        - $ref: "#/components/schemas/Service"
+        - type: object
+          properties:
+            isEnabled:
+              type: boolean
+          required:
+            - isEnabled
+    FaqInput:
+      type: object
+      properties:
+        question:
+          type: string
+          minLength: 2
+        answer:
+          type: string
+          minLength: 2
+        isPublished:
+          type: boolean
+      required:
+        - question
+        - answer
+        - isPublished
+    AdminFaq:
+      allOf:
+        - $ref: "#/components/schemas/Faq"
+        - type: object
+          properties:
+            isPublished:
+              type: boolean
+          required:
+            - isPublished
+    AdminContactMessage:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        email:
+          type: string
+        phone:
+          type: ["string", "null"]
+        message:
+          type: string
+        createdAt:
+          type: string
+      required:
+        - id
+        - name
+        - email
+        - phone
+        - message
+        - createdAt
+    ContactMessageInput:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 2
+        email:
+          type: string
+          format: email
+        phone:
+          type: ["string", "null"]
+        message:
+          type: string
+          minLength: 10
+          maxLength: 1000
+      required:
+        - name
+        - email
+        - message
+    ContactMessage:
+      type: object
+      properties:
+        id:
+          type: integer
+        received:
+          type: boolean
+      required:
+        - id
+        - received
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+      required:
+        - error
 

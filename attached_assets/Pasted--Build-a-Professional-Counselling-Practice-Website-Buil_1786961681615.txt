@@ -1,0 +1,1012 @@
+# Build a Professional Counselling Practice Website
+
+Build a production-ready, modern, responsive website for a professional counselling practice. The counsellor is the owner's mother, and she will personally provide the counselling sessions.
+
+This is a real business website, so it must look trustworthy, calm, professional, premium, and human — NOT like a generic AI-generated template.
+
+## 1. Main Goal
+
+Create a complete counselling practice website where visitors can:
+
+* Understand who the counsellor is
+* Learn about the counselling services offered
+* Understand the counselling process
+* Read FAQs
+* Contact the counsellor
+* Request/book an appointment
+* Optionally create an account if authentication is enabled
+* Find the practice through Google
+* Contact the counsellor through WhatsApp/phone/email
+* Use the website comfortably on mobile, tablet, and desktop
+
+The website should establish trust without making exaggerated medical or psychological claims.
+
+Do NOT claim guaranteed results, cures, diagnoses, or outcomes.
+
+---
+
+# 2. Tech Stack
+
+Use a modern production-ready stack.
+
+Preferred:
+
+* Next.js with App Router
+* TypeScript
+* Tailwind CSS
+* shadcn/ui where useful
+* Lucide icons
+* PostgreSQL for persistent data
+* Drizzle ORM
+* Zod for validation
+* React Hook Form for forms
+* Server-side API/actions where appropriate
+
+If the Replit environment has an existing preferred stack, adapt to it rather than unnecessarily fighting the environment.
+
+Use clean, maintainable TypeScript.
+
+Do not create unnecessary complexity.
+
+---
+
+# 3. Design Direction
+
+The website should feel:
+
+* Calm
+* Trustworthy
+* Warm
+* Professional
+* Private
+* Modern
+* Human
+* Premium but not flashy
+
+Avoid:
+
+* Neon colors
+* Excessive gradients
+* Gaming-style UI
+* Excessive animations
+* Huge unnecessary text
+* Generic stock-photo-heavy design
+* Overly clinical hospital aesthetics
+
+Use a soft, elegant visual system.
+
+Suggested palette:
+
+* Warm white / off-white backgrounds
+* Soft sage/green or muted blue-green accents
+* Dark charcoal text
+* Very subtle secondary colors
+
+Typography should be highly readable.
+
+Use generous whitespace.
+
+Cards should have subtle borders/shadows rather than excessive effects.
+
+---
+
+# 4. Responsive Design
+
+The website must be fully responsive.
+
+Prioritize mobile because many potential clients will probably access the website from their phones.
+
+Test:
+
+* 360px
+* 390px
+* 414px
+* 768px
+* 1024px
+* 1280px+
+
+Navigation must work properly on mobile.
+
+Buttons must be large enough to tap comfortably.
+
+WhatsApp/contact/appointment CTAs should remain easy to find.
+
+---
+
+# 5. Website Structure
+
+Create these pages:
+
+## Home
+
+Sections:
+
+1. Hero
+2. Short introduction to the counsellor
+3. Counselling services
+4. Why choose this practice
+5. How counselling works
+6. Appointment CTA
+7. Testimonials section if real testimonials are provided
+8. FAQ preview
+9. Contact CTA
+10. Footer
+
+Hero should have a clear headline such as:
+
+"Support for a Healthier, More Balanced You"
+
+Do not use this exact wording if the actual counsellor has a better positioning statement.
+
+Include:
+
+* Primary CTA: Book an Appointment
+* Secondary CTA: WhatsApp / Contact
+* Counsellor image if supplied
+
+Do not fabricate credentials.
+
+---
+
+# 6. About Counsellor
+
+Create a detailed About page.
+
+Include:
+
+* Professional photograph
+* Name
+* Qualifications
+* Certifications
+* Experience
+* Areas of counselling
+* Professional approach
+* Short personal introduction
+* Languages spoken
+* Location / online availability
+
+Only display credentials provided by the owner.
+
+Never invent degrees, certifications, years of experience, memberships, or professional claims.
+
+---
+
+# 7. Services
+
+Create a Services page.
+
+Each service should have:
+
+* Name
+* Short description
+* Who it may be suitable for
+* What sessions generally involve
+* Approximate duration if provided
+* Price if provided
+* CTA
+
+Possible categories can include placeholders for:
+
+* Individual counselling
+* Relationship/marriage counselling
+* Family counselling
+* Student counselling
+* Stress management
+* Anxiety-related support
+* Personal development
+* Career-related counselling
+
+IMPORTANT:
+
+Do not automatically claim that the counsellor treats medical/psychiatric conditions unless the owner explicitly provides the credentials and scope to do so.
+
+Make the services editable.
+
+---
+
+# 8. Appointment Booking
+
+Build an appointment request/booking system.
+
+Visitors should be able to:
+
+* Select counselling service
+* Select preferred date
+* Select available time
+* Enter name
+* Enter email
+* Enter phone number
+* Optionally enter a short reason/message
+* Submit appointment request
+
+Do NOT request unnecessary sensitive information.
+
+The form should clearly state that users should not submit emergency information or highly sensitive personal/medical details through a normal website form.
+
+After submission:
+
+* Show confirmation
+* Save appointment in database
+* Notify admin/counsellor
+* Prevent obvious duplicate submissions
+* Validate all fields
+* Sanitize input
+
+The counsellor/admin should be able to:
+
+* View appointments
+* Approve/reject/reschedule
+* Change appointment status
+* View client contact information
+* Add notes only if the system is explicitly designed to securely support them
+
+Do not expose admin information publicly.
+
+---
+
+# 9. Booking Availability
+
+Create an availability system.
+
+Admin should be able to configure:
+
+* Working days
+* Working hours
+* Breaks
+* Holidays/unavailable dates
+* Session duration
+* Buffer time between appointments
+
+The public booking page should only display available slots.
+
+Prevent double booking.
+
+Store all dates/times consistently and handle timezone correctly.
+
+Default timezone should be configurable, with India (Asia/Kolkata) as the initial default if the practice is based in India.
+
+---
+
+# 10. Client Authentication
+
+IMPORTANT:
+
+Do NOT make authentication mandatory unless the owner actually needs it.
+
+If authentication is enabled, support:
+
+* Email + password
+* Google login if practical
+* Password reset
+* Email verification
+* Secure sessions
+* Logout
+* Account deletion
+
+Use secure password hashing.
+
+Never store plaintext passwords.
+
+Do not add Apple/Facebook login unless specifically requested.
+
+The authentication system should be modular so it can be enabled or removed without rebuilding the entire website.
+
+---
+
+# 11. Admin Dashboard
+
+Create a secure admin dashboard.
+
+Admin should be able to manage:
+
+### Appointments
+
+* View upcoming appointments
+* View past appointments
+* Filter by status
+* Approve
+* Reject
+* Reschedule
+* Cancel
+* Mark completed
+
+### Services
+
+* Create
+* Edit
+* Delete
+* Enable/disable
+* Set description
+* Set duration
+* Set price
+
+### Availability
+
+* Working hours
+* Holidays
+* Time slots
+* Session duration
+
+### Website Content
+
+Allow basic editing of:
+
+* Counsellor information
+* About section
+* Services
+* FAQs
+* Contact information
+* Social links
+
+### Testimonials
+
+Admin can add/remove testimonials.
+
+Do not publish testimonials without admin approval.
+
+---
+
+# 12. Contact System
+
+Create a professional contact page.
+
+Include:
+
+* Phone
+* WhatsApp
+* Email
+* Address/location if applicable
+* Google Maps if applicable
+* Working hours
+* Contact form
+
+Contact form:
+
+* Name
+* Email
+* Phone
+* Message
+
+Add spam protection/rate limiting.
+
+Send notifications to the admin email.
+
+---
+
+# 13. WhatsApp Integration
+
+Add configurable WhatsApp buttons.
+
+The WhatsApp number must come from environment/configuration rather than being hardcoded throughout the application.
+
+Allow:
+
+* Header WhatsApp button
+* Hero WhatsApp button
+* Contact page button
+* Appointment confirmation CTA
+
+Pre-fill messages appropriately.
+
+Do not expose unnecessary personal data in WhatsApp URLs.
+
+---
+
+# 14. Google Business Profile / Google Listing
+
+Build the website so it is ready for Google Business Profile/local SEO.
+
+Include:
+
+* Correct business name
+* Address if applicable
+* Phone
+* Website
+* Opening hours
+* Service descriptions
+* LocalBusiness structured data where appropriate
+* Counsellor/professional structured data only where appropriate
+
+Create proper:
+
+* title tags
+* meta descriptions
+* canonical URLs
+* Open Graph metadata
+* sitemap.xml
+* robots.txt
+
+Do not attempt to artificially manipulate Google reviews.
+
+---
+
+# 15. SEO
+
+Implement technical SEO properly.
+
+Every major page should have:
+
+* Unique title
+* Meta description
+* Canonical URL
+* Open Graph metadata
+* Relevant structured data where appropriate
+
+Create:
+
+* sitemap
+* robots.txt
+* favicon
+* Open Graph image
+
+Use semantic HTML.
+
+Use proper H1/H2/H3 hierarchy.
+
+Images must have meaningful alt text.
+
+Do not keyword-stuff.
+
+---
+
+# 16. Meta Ads Readiness
+
+The website must be compatible with Meta advertising.
+
+Create configurable support for:
+
+* Meta Pixel
+* Conversion events
+
+Potential events:
+
+* PageView
+* Contact
+* Lead
+* Schedule/appointment request
+
+Do not add tracking until the necessary privacy/consent implementation is considered.
+
+Keep Meta Pixel ID in environment variables.
+
+Do not hardcode advertising IDs.
+
+---
+
+# 17. Privacy
+
+This is a counselling website, so privacy is especially important.
+
+Create:
+
+* Privacy Policy page
+* Terms & Conditions page
+* Cancellation/appointment policy page if required
+* Disclaimer page
+
+The website should clearly state:
+
+* It is not an emergency service
+* Users should not submit emergency information through ordinary contact forms
+* How submitted information is used
+* How appointment data is handled
+* Whether third-party services are used
+
+Do not claim legal compliance with laws/certifications unless verified.
+
+---
+
+# 18. Sensitive Information
+
+Minimize collection of sensitive information.
+
+Do NOT ask users to provide:
+
+* Detailed medical history
+* Diagnoses
+* Medication information
+* Extremely personal life history
+
+during a normal contact/booking form unless specifically required and appropriately secured.
+
+The booking form should use a simple optional field such as:
+
+"Anything you'd like us to know before contacting you?"
+
+with a warning not to submit sensitive information.
+
+---
+
+# 19. Emergency Disclaimer
+
+Create a visible but non-alarming disclaimer:
+
+"This website is not an emergency service. If you are in immediate danger or need urgent assistance, please contact your local emergency service or an appropriate crisis resource."
+
+Do not provide fabricated emergency numbers.
+
+Make this configurable.
+
+---
+
+# 20. Testimonials
+
+Add testimonials only if real testimonials are supplied by the owner.
+
+Admin should be able to:
+
+* Add testimonial
+* Edit testimonial
+* Hide testimonial
+* Delete testimonial
+
+Do not generate fake testimonials.
+
+Do not use fake names such as "Rahul, Delhi" unless explicitly provided as anonymized testimonials by the owner.
+
+---
+
+# 21. Content Management
+
+Important content should be configurable rather than hardcoded.
+
+At minimum allow editing:
+
+* Practice name
+* Counsellor name
+* Bio
+* Qualifications
+* Phone
+* WhatsApp
+* Email
+* Address
+* Working hours
+* Services
+* Pricing
+* FAQs
+* Social links
+
+Use sensible defaults/placeholders until real information is supplied.
+
+Clearly mark placeholders so they cannot accidentally appear on the production website.
+
+---
+
+# 22. Images
+
+Do not invent a real counsellor's identity.
+
+If no photo is provided, use a tasteful placeholder.
+
+Do not use AI-generated images pretending to be the actual counsellor.
+
+Support easy replacement of:
+
+* Counsellor photo
+* Logo
+* Favicon
+* Hero image
+* OG image
+
+Optimize images for performance.
+
+Use modern image formats where supported.
+
+---
+
+# 23. Accessibility
+
+Follow good accessibility practices.
+
+Include:
+
+* Keyboard navigation
+* Visible focus states
+* Proper labels
+* ARIA only where necessary
+* Good contrast
+* Alt text
+* Accessible buttons
+* Accessible forms
+* Error messages
+* Screen-reader-friendly structure
+
+Do not rely on color alone to communicate information.
+
+---
+
+# 24. Performance
+
+Optimize for fast loading.
+
+Use:
+
+* Server-side rendering where appropriate
+* Image optimization
+* Lazy loading
+* Minimal JavaScript
+* Code splitting
+* Efficient database queries
+
+Avoid unnecessary animation libraries/components.
+
+The site should feel fast even on average Indian mobile networks.
+
+---
+
+# 25. Security
+
+Implement reasonable production security:
+
+* Secure authentication
+* Password hashing
+* Input validation
+* Server-side validation
+* CSRF protection where applicable
+* Rate limiting
+* Secure cookies
+* Authorization checks
+* Admin route protection
+* SQL injection prevention through ORM/parameterized queries
+* XSS protection
+* Secure HTTP headers where appropriate
+
+Never trust client-side authorization.
+
+Every admin action must be authorized server-side.
+
+---
+
+# 26. Database
+
+Create a clean database schema.
+
+Potential tables:
+
+* users
+* roles
+* counsellor_profile
+* services
+* availability
+* appointments
+* testimonials
+* faqs
+* contact_messages
+* site_settings
+
+Only create tables/features that are actually needed.
+
+Use migrations.
+
+Do not store unnecessary personal information.
+
+---
+
+# 27. Environment Variables
+
+Use environment variables for:
+
+* DATABASE_URL
+* AUTH_SECRET
+* Google OAuth credentials if used
+* Email provider credentials
+* WhatsApp number
+* Meta Pixel ID
+* Admin email
+* Application URL
+
+Create a `.env.example`.
+
+Never commit secrets.
+
+---
+
+# 28. Email Notifications
+
+If email is configured, send:
+
+### To client
+
+* Appointment request confirmation
+* Appointment approval
+* Appointment cancellation/rescheduling
+
+### To admin
+
+* New appointment
+* New contact message
+
+Use a configurable email provider.
+
+Do not expose API keys.
+
+---
+
+# 29. Error Handling
+
+Create proper:
+
+* Loading states
+* Empty states
+* Error states
+* Form validation
+* Database error handling
+* 404 page
+* 500/error page
+
+Never show raw database errors to users.
+
+---
+
+# 30. UI Details
+
+Create reusable components:
+
+* Navbar
+* Footer
+* Button
+* Section heading
+* Service card
+* Testimonial card
+* FAQ accordion
+* Appointment form
+* Contact form
+* Modal
+* Admin tables
+* Status badges
+* Toast notifications
+
+Maintain consistent spacing and typography.
+
+---
+
+# 31. Navigation
+
+Desktop navigation:
+
+* Home
+* About
+* Services
+* How It Works
+* FAQs
+* Contact
+* Book Appointment
+
+Mobile:
+
+Use a clean hamburger menu.
+
+Always keep the main CTA visible.
+
+---
+
+# 32. Footer
+
+Include:
+
+* Practice name
+* Short description
+* Quick links
+* Services
+* Contact
+* WhatsApp
+* Social links
+* Privacy Policy
+* Terms
+* Disclaimer
+* Copyright
+
+---
+
+# 33. Admin Security
+
+Create a protected `/admin` area.
+
+Only authorized admin accounts can access it.
+
+Never rely solely on hiding the URL.
+
+Protect all admin API/server actions.
+
+Implement role-based authorization.
+
+---
+
+# 34. Seed Data
+
+Create realistic but clearly marked demo data for development.
+
+Examples:
+
+* Demo services
+* Demo appointment
+* Demo FAQ
+
+Do NOT use fake testimonials in production.
+
+Make it easy to remove all demo data.
+
+---
+
+# 35. Configuration
+
+Create one central configuration system for:
+
+* Practice name
+* Counsellor name
+* Contact details
+* WhatsApp
+* Email
+* Address
+* Social links
+* Currency
+* Timezone
+* Booking settings
+
+This should make it easy to customize the site for the real counsellor without modifying code everywhere.
+
+---
+
+# 36. Currency
+
+Use Indian Rupees (₹) by default.
+
+Pricing should be configurable.
+
+Do not hardcode service prices into UI components.
+
+---
+
+# 37. Deployment
+
+The project should be deployable easily on Replit or another modern hosting provider.
+
+Provide:
+
+* Production build
+* Database migration instructions
+* Environment variable documentation
+* Deployment instructions
+* Admin setup instructions
+* Domain configuration instructions
+
+Do not make the project dependent on Replit-only functionality unless absolutely necessary.
+
+---
+
+# 38. Documentation
+
+Create a clear README containing:
+
+* Project overview
+* Tech stack
+* Local development
+* Environment variables
+* Database setup
+* Migrations
+* Admin setup
+* Deployment
+* Domain setup
+* Meta Pixel setup
+* Google Business Profile setup
+* How to change counsellor information
+* How to add services
+* How to change availability
+* How to manage appointments
+
+---
+
+# 39. Important Business Rules
+
+Do NOT invent:
+
+* Counsellor credentials
+* Qualifications
+* Certifications
+* Reviews
+* Testimonials
+* Prices
+* Address
+* Phone number
+* Email
+* Claims about treatment
+* Claims about success rates
+
+Use clearly marked placeholders until the owner provides the real information.
+
+---
+
+# 40. Initial Placeholder Content
+
+Use placeholders such as:
+
+PRACTICE_NAME
+
+COUNSELLOR_NAME
+
+COUNSELLOR_QUALIFICATIONS
+
+PHONE_NUMBER
+
+WHATSAPP_NUMBER
+
+EMAIL_ADDRESS
+
+PRACTICE_ADDRESS
+
+Do not allow these placeholders to be accidentally presented as real information.
+
+---
+
+# 41. Final Quality Requirements
+
+Before considering the project complete:
+
+1. Run the production build.
+2. Fix all TypeScript errors.
+3. Fix all lint errors.
+4. Test every form.
+5. Test appointment creation.
+6. Test appointment status changes.
+7. Test admin authorization.
+8. Test mobile navigation.
+9. Test desktop layout.
+10. Test invalid form input.
+11. Test database failures gracefully.
+12. Test 404 and error pages.
+13. Verify no secrets are committed.
+14. Verify no fake testimonials are displayed.
+15. Verify no placeholder information appears accidentally.
+16. Verify all important links work.
+17. Verify WhatsApp links.
+18. Verify email links.
+19. Verify SEO metadata.
+20. Verify sitemap and robots.txt.
+21. Verify accessibility basics.
+22. Verify production build succeeds.
+
+---
+
+# 42. Development Approach
+
+Do NOT build the entire application as one giant component.
+
+Use:
+
+* Reusable components
+* Proper folder structure
+* Server/client separation
+* Database abstraction
+* Validation schemas
+* Shared types
+* Clean API/server actions
+* Centralized configuration
+
+Keep the code understandable for another developer.
+
+Do not over-engineer.
+
+---
+
+# 43. Most Important Requirement
+
+Before implementing optional features such as:
+
+* Client accounts
+* Google login
+* OTP
+* Online payments
+* Complex patient/client dashboards
+* Video calling
+* Chat
+* Medical records
+
+first structure the application so these can be added later.
+
+The initial version should focus on:
+
+**Professional website + counsellor information + services + contact + WhatsApp + appointment booking + secure admin management + SEO + privacy + deployment readiness.**
+
+Build this as a polished real-world product rather than a demo.
+
+Start by creating the project structure, database schema, configuration system, and core UI. Then implement the public website, booking system, authentication/admin functionality, SEO, security, and deployment configuration.
