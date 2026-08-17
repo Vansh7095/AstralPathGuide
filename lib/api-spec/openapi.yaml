@@ -16,6 +16,10 @@ tags:
     description: Appointment availability and requests
   - name: contact
     description: Public contact messages
+  - name: account
+    description: Authenticated account profile and onboarding
+  - name: admin
+    description: Practice administration and staff verification
 paths:
   /healthz:
     get:
@@ -111,6 +115,154 @@ paths:
                 $ref: "#/components/schemas/Appointment"
         "409":
           description: Slot is no longer available
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /me:
+    get:
+      operationId: getMyProfile
+      tags: [account]
+      summary: Get the signed-in user's profile and access state
+      security: [{ clerkSession: [] }]
+      responses:
+        "200":
+          description: Current account profile
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserProfile"
+        "401":
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /me/profile:
+    patch:
+      operationId: updateMyProfile
+      tags: [account]
+      summary: Save counselling profile and account type
+      security: [{ clerkSession: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserProfileInput"
+      responses:
+        "200":
+          description: Saved profile
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserProfile"
+        "400":
+          description: Invalid profile
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /me/staff-request:
+    post:
+      operationId: createStaffRequest
+      tags: [account]
+      summary: Request staff or counsellor verification
+      security: [{ clerkSession: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/StaffRequestInput"
+      responses:
+        "201":
+          description: Staff verification request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StaffRequest"
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Server-side authorization failed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /me/appointments:
+    get:
+      operationId: getMyAppointments
+      tags: [account]
+      summary: List the signed-in user's appointment requests
+      security: [{ clerkSession: [] }]
+      responses:
+        "200":
+          description: Appointment requests belonging to the current user
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Appointment"
+        "401":
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /admin/staff-requests:
+    get:
+      operationId: getAdminStaffRequests
+      tags: [admin]
+      summary: List staff and counsellor verification requests
+      security: [{ clerkSession: [] }]
+      parameters:
+        - name: status
+          in: query
+          required: false
+          schema:
+            $ref: "#/components/schemas/VerificationStatus"
+      responses:
+        "200":
+          description: Staff verification requests
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/StaffRequest"
+  /admin/staff-requests/{id}:
+    patch:
+      operationId: updateAdminStaffRequest
+      tags: [admin]
+      summary: Approve or reject a staff verification request
+      security: [{ clerkSession: [] }]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/StaffRequestUpdate"
+      responses:
+        "200":
+          description: Updated staff verification request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StaffRequest"
+        "404":
+          description: Staff request not found
           content:
             application/json:
               schema:
@@ -608,6 +760,210 @@ components:
         - message
         - status
         - createdAt
+    AccountType:
+      type: string
+      enum: [client, staff, admin]
+    OnboardingStatus:
+      type: string
+      enum: [not_started, in_progress, complete]
+    VerificationStatus:
+      type: string
+      enum: [pending, verified, rejected]
+    UserProfile:
+      type: object
+      properties:
+        accountType:
+          type: ["string", "null"]
+          enum: [client, staff, admin, null]
+        role:
+          type: string
+          enum: [client, staff, admin]
+        onboardingStatus:
+          $ref: "#/components/schemas/OnboardingStatus"
+        verificationStatus:
+          type: ["string", "null"]
+          enum: [pending, verified, rejected, null]
+        fullName:
+          type: ["string", "null"]
+        preferredName:
+          type: ["string", "null"]
+        phone:
+          type: ["string", "null"]
+        dateOfBirth:
+          type: ["string", "null"]
+        preferredContactMethod:
+          type: ["string", "null"]
+        location:
+          type: ["string", "null"]
+        emergencyContactName:
+          type: ["string", "null"]
+        emergencyContactPhone:
+          type: ["string", "null"]
+        counsellingReason:
+          type: ["string", "null"]
+        preferredFormat:
+          type: ["string", "null"]
+        preferredLanguage:
+          type: ["string", "null"]
+        accessibilityRequirements:
+          type: ["string", "null"]
+        counsellingGoals:
+          type: ["string", "null"]
+      required:
+        - accountType
+        - role
+        - onboardingStatus
+        - verificationStatus
+        - fullName
+        - preferredName
+        - phone
+        - dateOfBirth
+        - preferredContactMethod
+        - location
+        - emergencyContactName
+        - emergencyContactPhone
+        - counsellingReason
+        - preferredFormat
+        - preferredLanguage
+        - accessibilityRequirements
+        - counsellingGoals
+    UserProfileInput:
+      type: object
+      properties:
+        accountType:
+          $ref: "#/components/schemas/AccountType"
+        fullName:
+          type: string
+          minLength: 2
+        preferredName:
+          type: ["string", "null"]
+        phone:
+          type: ["string", "null"]
+        dateOfBirth:
+          type: ["string", "null"]
+        preferredContactMethod:
+          type: ["string", "null"]
+        location:
+          type: ["string", "null"]
+        emergencyContactName:
+          type: ["string", "null"]
+        emergencyContactPhone:
+          type: ["string", "null"]
+        counsellingReason:
+          type: ["string", "null"]
+        preferredFormat:
+          type: ["string", "null"]
+        preferredLanguage:
+          type: ["string", "null"]
+        accessibilityRequirements:
+          type: ["string", "null"]
+        counsellingGoals:
+          type: ["string", "null"]
+      required:
+        - accountType
+        - fullName
+    StaffRequestInput:
+      type: object
+      properties:
+        requestedRole:
+          type: string
+          enum: [staff, admin]
+        fullName:
+          type: string
+          minLength: 2
+        professionalRole:
+          type: string
+          minLength: 2
+        phone:
+          type: string
+          minLength: 7
+        professionalEmail:
+          type: ["string", "null"]
+          format: email
+        qualification:
+          type: string
+          minLength: 2
+        experienceYears:
+          type: ["integer", "null"]
+          minimum: 0
+        expertise:
+          type: string
+          minLength: 2
+        languagesSpoken:
+          type: string
+          minLength: 2
+        availabilityPreferences:
+          type: ["string", "null"]
+        authorizationCode:
+          type: ["string", "null"]
+      required:
+        - requestedRole
+        - fullName
+        - professionalRole
+        - phone
+        - qualification
+        - expertise
+        - languagesSpoken
+    StaffRequest:
+      type: object
+      properties:
+        id:
+          type: integer
+        requestedRole:
+          type: string
+          enum: [staff, admin]
+        verificationStatus:
+          $ref: "#/components/schemas/VerificationStatus"
+        fullName:
+          type: string
+        professionalRole:
+          type: string
+        phone:
+          type: string
+        professionalEmail:
+          type: ["string", "null"]
+        qualification:
+          type: string
+        experienceYears:
+          type: ["integer", "null"]
+        expertise:
+          type: string
+        languagesSpoken:
+          type: string
+        availabilityPreferences:
+          type: ["string", "null"]
+        rejectionReason:
+          type: ["string", "null"]
+        requestedAt:
+          type: string
+        verifiedAt:
+          type: ["string", "null"]
+      required:
+        - id
+        - requestedRole
+        - verificationStatus
+        - fullName
+        - professionalRole
+        - phone
+        - professionalEmail
+        - qualification
+        - experienceYears
+        - expertise
+        - languagesSpoken
+        - availabilityPreferences
+        - rejectionReason
+        - requestedAt
+        - verifiedAt
+    StaffRequestUpdate:
+      type: object
+      properties:
+        verificationStatus:
+          type: string
+          enum: [verified, rejected, pending]
+        rejectionReason:
+          type: ["string", "null"]
+      required:
+        - verificationStatus
     AppointmentStatus:
       type: string
       enum: [pending, confirmed, cancelled, completed, rejected]

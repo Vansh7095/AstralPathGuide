@@ -1,0 +1,319 @@
+Continue the current counselling-practice project and implement a complete, polished authentication and onboarding system.
+
+Do NOT redesign the existing public website. Keep its current visual identity, layout, content, colors, typography, and overall UX. The changes in this task are specifically for authentication, registration, onboarding, roles, and protected areas.
+
+## 1. HOMEPAGE AUTHENTICATION
+
+On the public homepage, provide two clear actions:
+
+- Login
+- Sign Up
+
+The public website itself must remain accessible without an account.
+
+## 2. LOGIN FLOW
+
+When the user clicks Login, open a dedicated, polished login page.
+
+The login page must provide:
+
+- Email address or username
+- Password
+- Login button
+- Google sign-in
+- Forgot password
+- Link to create a new account
+
+Use Clerk for the actual authentication/session management.
+
+Do not build a custom password authentication system.
+
+After successful authentication:
+
+- If the user is an authorized administrator, they can access /admin.
+- If the user is authorized staff/counsellor, send them to the appropriate staff area.
+- If the user is a normal client, send them to the client area/dashboard.
+- Preserve the originally requested protected URL where appropriate.
+
+## 3. SIGN-UP FLOW
+
+When the user clicks Sign Up, open a dedicated signup page.
+
+The first step should handle account creation through Clerk.
+
+Allow:
+
+- Email/username + password
+- Google sign-up
+
+After the authentication/account creation step, DO NOT immediately consider the registration complete.
+
+Instead, take the user to a second onboarding/profile-verification page.
+
+## 4. SECOND SIGN-UP / ONBOARDING PAGE
+
+The second page must be specifically designed around a counselling practice.
+
+First ask the user to select their account type:
+
+### Client
+
+For a normal counselling client, collect only information genuinely useful for providing the service, such as:
+
+- Full name
+- Preferred name, if different
+- Phone number
+- Date of birth or age
+- Preferred contact method
+- General location/city
+- Emergency contact name and phone number, if appropriate
+- Reason for seeking counselling / area they want help with
+- Preferred counselling format:
+  - Online
+  - In-person
+  - Either
+- Preferred language
+- Accessibility or communication requirements, if any
+- Optional short description of what they are looking for from counselling
+
+Do NOT require unnecessary identity documents such as Aadhaar unless the application has a genuine legal/business requirement for them.
+
+Clearly mark genuinely optional information as optional.
+
+### Counsellor / Staff
+
+A user must NOT be able to simply select Counsellor/Staff and immediately receive staff privileges.
+
+Require a staff authorization/verification step.
+
+This can include:
+
+- Staff invitation code or authorization code
+- Full name
+- Professional role
+- Phone number
+- Professional email, if applicable
+- Relevant professional qualification/certification information
+- Years of experience
+- Areas of counselling expertise
+- Languages spoken
+- Availability/preferences
+
+Staff verification must be handled server-side.
+
+Never place privileged staff authorization codes in frontend JavaScript or public environment variables.
+
+### Admin
+
+A user must NOT be able to select Admin and become an administrator.
+
+Admin registration must require an explicit server-side authorization mechanism.
+
+Require:
+
+- Admin invitation/authorization code or equivalent controlled verification
+- Full name
+- Contact information
+
+The final authorization decision must still be enforced using the existing:
+
+ADMIN_CLERK_USER_IDS
+
+allowlist.
+
+The existing production ADMIN_CLERK_USER_IDS configuration MUST NOT be removed, weakened, bypassed, or replaced.
+
+## 5. ROLE SECURITY
+
+Treat role selection as an onboarding request, NOT as proof of authorization.
+
+For example:
+
+A user selecting "Admin" does not make them an admin.
+
+A user selecting "Counsellor/Staff" does not make them staff.
+
+The backend must independently verify whether the account is authorized for the requested privileged role.
+
+Store the user's role and onboarding/verification state server-side using the existing database architecture.
+
+Use appropriate states such as:
+
+- pending
+- verified
+- rejected
+
+where useful.
+
+## 6. ADMIN SECURITY
+
+Keep the current protected /admin implementation.
+
+Requirements:
+
+- Signed-out user visiting /admin → dedicated login page
+- After login → return to /admin
+- Authenticated but unauthorized user → clear access-denied page
+- Authorized admin → admin dashboard
+- ADMIN_CLERK_USER_IDS remains the final admin allowlist
+
+Do not expose the Clerk user ID publicly.
+
+Do not expose any secret keys.
+
+Do not expose:
+
+- CLERK_SECRET_KEY
+- DATABASE_URL
+- private API credentials
+- authorization codes
+- staff/admin secrets
+
+## 7. USER EXPERIENCE
+
+Make the authentication flow feel like one coherent part of the counselling website.
+
+The flow should be:
+
+PUBLIC WEBSITE
+    ↓
+Login / Sign Up
+    ↓
+Clerk authentication
+    ↓
+For new users:
+Role selection + counselling-specific onboarding
+    ↓
+Server-side verification
+    ↓
+Appropriate dashboard
+
+For existing users:
+Login
+    ↓
+Appropriate dashboard
+
+Use clear progress indicators during signup, for example:
+
+Create account
+→
+Choose account type
+→
+Complete profile
+→
+Verification
+→
+Finished
+
+Show friendly validation errors.
+
+Do not lose entered information unnecessarily when moving between steps.
+
+Make the forms responsive and usable on both desktop and mobile.
+
+## 8. DATABASE
+
+Inspect the existing database schema before adding anything.
+
+Reuse existing tables/structures where appropriate.
+
+Only add the minimum schema required for:
+
+- user profile
+- role
+- onboarding status
+- staff/admin verification state
+- counselling-specific profile information
+
+Do not delete or reset existing data.
+
+Do not create duplicate authentication systems.
+
+## 9. CLERK
+
+Continue using the existing Clerk configuration.
+
+Do not replace Clerk.
+
+Do not change secret environment variables.
+
+Do not expose secret values in logs, UI, source code, or responses.
+
+The existing production environment variable:
+
+ADMIN_CLERK_USER_IDS
+
+must remain configured exactly as it currently is.
+
+## 10. PUBLIC WEBSITE
+
+Do not add a login requirement to:
+
+- Homepage
+- About
+- Services
+- How It Works
+- FAQs
+- Contact
+- Booking information
+- Privacy
+- Terms
+- Disclaimer
+
+Only account-specific functionality and protected staff/admin functionality should require authentication.
+
+## 11. BOOKING
+
+If a counselling client is logged in, make the booking experience capable of using their stored profile information where appropriate, so they do not repeatedly have to enter the same basic information.
+
+Do not expose private client information to other users.
+
+## 12. VALIDATION AND PRIVACY
+
+Collect the minimum information necessary.
+
+Clearly distinguish:
+
+- Required
+- Optional
+- Verification-only information
+
+Do not ask for sensitive identity documents merely because they are available.
+
+For counselling-related information, avoid unnecessarily collecting detailed medical/mental-health information during basic account registration. If the application later genuinely needs such information, it should have an appropriate dedicated and clearly explained flow.
+
+## 13. TESTING
+
+After implementation:
+
+1. Run the complete workspace typecheck.
+2. Build the frontend.
+3. Build the API.
+4. Verify the public homepage works without authentication.
+5. Verify Login.
+6. Verify Google authentication integration.
+7. Verify Sign Up.
+8. Verify the second onboarding page.
+9. Verify Client onboarding.
+10. Verify Staff/Counsellor authorization.
+11. Verify Admin authorization.
+12. Verify signed-out /admin protection.
+13. Verify authenticated non-admin /admin protection.
+14. Verify authorized admin access.
+15. Verify existing booking and availability functionality.
+16. Verify mobile and desktop layouts.
+17. Check for console/runtime errors.
+18. Do not deploy until the implementation passes the checks.
+
+If you encounter an actual bug, fix it rather than merely reporting it.
+
+Do not make unrelated changes to the application.
+
+At the end, provide a concise report of:
+- What was implemented
+- Database changes
+- Authentication changes
+- Role/verification behavior
+- Security checks
+- Test/build results
+- Any remaining manual configuration

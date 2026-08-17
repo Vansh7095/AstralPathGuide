@@ -99,6 +99,212 @@ export interface Appointment {
   createdAt: string;
 }
 
+export type AccountType = typeof AccountType[keyof typeof AccountType];
+
+
+export const AccountType = {
+  client: 'client',
+  staff: 'staff',
+  admin: 'admin',
+} as const;
+
+export type OnboardingStatus = typeof OnboardingStatus[keyof typeof OnboardingStatus];
+
+
+export const OnboardingStatus = {
+  not_started: 'not_started',
+  in_progress: 'in_progress',
+  complete: 'complete',
+} as const;
+
+export type VerificationStatus = typeof VerificationStatus[keyof typeof VerificationStatus];
+
+
+export const VerificationStatus = {
+  pending: 'pending',
+  verified: 'verified',
+  rejected: 'rejected',
+} as const;
+
+/**
+ * @nullable
+ */
+export type UserProfileAccountType = typeof UserProfileAccountType[keyof typeof UserProfileAccountType] | null;
+
+
+export const UserProfileAccountType = {
+  client: 'client',
+  staff: 'staff',
+  admin: 'admin',
+} as const;
+
+export type UserProfileRole = typeof UserProfileRole[keyof typeof UserProfileRole];
+
+
+export const UserProfileRole = {
+  client: 'client',
+  staff: 'staff',
+  admin: 'admin',
+} as const;
+
+/**
+ * @nullable
+ */
+export type UserProfileVerificationStatus = typeof UserProfileVerificationStatus[keyof typeof UserProfileVerificationStatus] | null;
+
+
+export const UserProfileVerificationStatus = {
+  pending: 'pending',
+  verified: 'verified',
+  rejected: 'rejected',
+} as const;
+
+export interface UserProfile {
+  /** @nullable */
+  accountType: UserProfileAccountType;
+  role: UserProfileRole;
+  onboardingStatus: OnboardingStatus;
+  /** @nullable */
+  verificationStatus: UserProfileVerificationStatus;
+  /** @nullable */
+  fullName: string | null;
+  /** @nullable */
+  preferredName: string | null;
+  /** @nullable */
+  phone: string | null;
+  /** @nullable */
+  dateOfBirth: string | null;
+  /** @nullable */
+  preferredContactMethod: string | null;
+  /** @nullable */
+  location: string | null;
+  /** @nullable */
+  emergencyContactName: string | null;
+  /** @nullable */
+  emergencyContactPhone: string | null;
+  /** @nullable */
+  counsellingReason: string | null;
+  /** @nullable */
+  preferredFormat: string | null;
+  /** @nullable */
+  preferredLanguage: string | null;
+  /** @nullable */
+  accessibilityRequirements: string | null;
+  /** @nullable */
+  counsellingGoals: string | null;
+}
+
+export interface UserProfileInput {
+  accountType: AccountType;
+  /** @minLength 2 */
+  fullName: string;
+  /** @nullable */
+  preferredName?: string | null;
+  /** @nullable */
+  phone?: string | null;
+  /** @nullable */
+  dateOfBirth?: string | null;
+  /** @nullable */
+  preferredContactMethod?: string | null;
+  /** @nullable */
+  location?: string | null;
+  /** @nullable */
+  emergencyContactName?: string | null;
+  /** @nullable */
+  emergencyContactPhone?: string | null;
+  /** @nullable */
+  counsellingReason?: string | null;
+  /** @nullable */
+  preferredFormat?: string | null;
+  /** @nullable */
+  preferredLanguage?: string | null;
+  /** @nullable */
+  accessibilityRequirements?: string | null;
+  /** @nullable */
+  counsellingGoals?: string | null;
+}
+
+export type StaffRequestInputRequestedRole = typeof StaffRequestInputRequestedRole[keyof typeof StaffRequestInputRequestedRole];
+
+
+export const StaffRequestInputRequestedRole = {
+  staff: 'staff',
+  admin: 'admin',
+} as const;
+
+export interface StaffRequestInput {
+  requestedRole: StaffRequestInputRequestedRole;
+  /** @minLength 2 */
+  fullName: string;
+  /** @minLength 2 */
+  professionalRole: string;
+  /** @minLength 7 */
+  phone: string;
+  /** @nullable */
+  professionalEmail?: string | null;
+  /** @minLength 2 */
+  qualification: string;
+  /**
+     * @minimum 0
+     * @nullable
+     */
+  experienceYears?: number | null;
+  /** @minLength 2 */
+  expertise: string;
+  /** @minLength 2 */
+  languagesSpoken: string;
+  /** @nullable */
+  availabilityPreferences?: string | null;
+  /** @nullable */
+  authorizationCode?: string | null;
+}
+
+export type StaffRequestRequestedRole = typeof StaffRequestRequestedRole[keyof typeof StaffRequestRequestedRole];
+
+
+export const StaffRequestRequestedRole = {
+  staff: 'staff',
+  admin: 'admin',
+} as const;
+
+export interface StaffRequest {
+  id: number;
+  requestedRole: StaffRequestRequestedRole;
+  verificationStatus: VerificationStatus;
+  fullName: string;
+  professionalRole: string;
+  phone: string;
+  /** @nullable */
+  professionalEmail: string | null;
+  qualification: string;
+  /** @nullable */
+  experienceYears: number | null;
+  expertise: string;
+  languagesSpoken: string;
+  /** @nullable */
+  availabilityPreferences: string | null;
+  /** @nullable */
+  rejectionReason: string | null;
+  requestedAt: string;
+  /** @nullable */
+  verifiedAt: string | null;
+}
+
+export type StaffRequestUpdateVerificationStatus = typeof StaffRequestUpdateVerificationStatus[keyof typeof StaffRequestUpdateVerificationStatus];
+
+
+export const StaffRequestUpdateVerificationStatus = {
+  verified: 'verified',
+  rejected: 'rejected',
+  pending: 'pending',
+} as const;
+
+export interface StaffRequestUpdate {
+  verificationStatus: StaffRequestUpdateVerificationStatus;
+  /** @nullable */
+  rejectionReason?: string | null;
+}
+
 export type AppointmentStatus = typeof AppointmentStatus[keyof typeof AppointmentStatus];
 
 
@@ -208,6 +414,10 @@ export interface ErrorResponse {
 
 export type GetAvailabilityParams = {
 date: string;
+};
+
+export type GetAdminStaffRequestsParams = {
+status?: VerificationStatus;
 };
 
 export type GetAdminAppointmentsParams = {

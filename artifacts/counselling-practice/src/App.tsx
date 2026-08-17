@@ -1,4 +1,4 @@
-import { type FormEvent, type ReactNode, useEffect, useMemo, useState } from 'react';
+import { type FormEvent, type ReactNode, useEffect, useMemo, useRef, useState } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import {
   ArrowLeft,
@@ -35,8 +35,10 @@ import {
   getGetAdminContactMessagesQueryKey,
   getGetAdminFaqsQueryKey,
   getGetAdminServicesQueryKey,
+  getGetAdminStaffRequestsQueryKey,
   getGetAvailabilityQueryKey,
   getGetFaqsQueryKey,
+  getGetMyProfileQueryKey,
   getGetServicesQueryKey,
   getGetSiteContentQueryKey,
   useCreateAdminFaq,
@@ -50,24 +52,30 @@ import {
   useGetAdminContactMessages,
   useGetAdminFaqs,
   useGetAdminServices,
+  useGetAdminStaffRequests,
   useGetAvailability,
   useGetFaqs,
+  useGetMyProfile,
   useGetServices,
   useGetSiteContent,
   useUpdateAdminAppointment,
   useUpdateAdminAvailability,
   useUpdateAdminFaq,
   useUpdateAdminService,
+  useUpdateAdminStaffRequest,
 } from '@workspace/api-client-react';
-import type { AdminFaq, AdminService, AppointmentStatusProperty, Faq, Service, SiteContent } from '@workspace/api-client-react';
+import type { AdminFaq, AdminService, AppointmentStatusProperty, Faq, Service, SiteContent, StaffRequest, UserProfile } from '@workspace/api-client-react';
 import { Link, Route, Switch, useLocation, Router as WouterRouter } from 'wouter';
-import { ClerkProvider, Show, SignIn, SignUp, useAuth } from '@clerk/react';
+import { ClerkProvider, Show, SignIn, SignUp, useAuth, useClerk, useUser } from '@clerk/react';
 import { publishableKeyFromHost } from '@clerk/react/internal';
 import { shadcn } from '@clerk/themes';
 import { ErrorBoundary } from '@/components/error-boundary';
 import { Toaster } from '@/components/ui/toaster';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import NotFound from '@/pages/not-found';
+import Dashboard from '@/pages/dashboard';
+import Onboarding from '@/pages/onboarding';
+import Staff from '@/pages/staff';
 
 const queryClient = new QueryClient();
 const basePath = import.meta.env.BASE_URL.replace(/\/$/, '');
@@ -159,6 +167,14 @@ function errorStatus(error: unknown) {
   return null;
 }
 
+function workspacePath(profile: UserProfile | undefined) {
+  if (!profile) return '/dashboard';
+  if (profile.role === 'admin') return '/admin';
+  if (profile.onboardingStatus !== 'complete') return '/onboarding';
+  if (profile.role === 'staff' || profile.accountType === 'staff' || profile.accountType === 'admin') return '/staff';
+  return '/dashboard';
+}
+
 function PlaceholderBadge() {
   return (
     <span className="inline-flex items-center gap-1.5 rounded-full border border-[hsl(var(--accent)/.45)] bg-[hsl(var(--accent)/.12)] px-2.5 py-1 text-[10px] font-bold uppercase tracking-[.12em] text-[hsl(var(--accent-foreground))]" data-testid="badge-unpublished">
@@ -184,9 +200,13 @@ function ButtonLink({ href, children, secondary = false, className = '', testId 
 function Shell({ children }: { children: ReactNode }) {
   const [location] = useLocation();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const { isLoaded, isSignedIn } = useAuth();
+  const { signOut } = useClerk();
+  const profileQuery = useGetMyProfile({ query: { enabled: isLoaded && !!isSignedIn, queryKey: getGetMyProfileQueryKey() } });
   const contentQuery = useGetSiteContent({ query: { queryKey: getGetSiteContentQueryKey() } });
   const content = contentQuery.data ?? fallbackContent;
   const practiceName = content.practiceName || fallbackContent.practiceName;
+  const workspace = workspacePath(profileQuery.data);
 
   useEffect(() => setMobileOpen(false), [location]);
 
@@ -201,10 +221,10 @@ function Shell({ children }: { children: ReactNode }) {
           <nav className="hidden items-center gap-7 lg:flex" aria-label="Primary navigation">
             {navItems.map((item) => <Link key={item.href} href={item.href} className={`focus-ring relative py-2 text-sm font-semibold transition after:absolute after:bottom-0 after:left-0 after:h-px after:bg-[hsl(var(--accent))] after:transition-all ${location === item.href ? 'text-[hsl(var(--primary))] after:w-full' : 'text-[hsl(var(--muted-foreground))] after:w-0 hover:text-[hsl(var(--primary))] hover:after:w-full'}`} data-testid={`link-nav-${item.label.toLowerCase().replaceAll(' ', '-')}`}>{item.label}</Link>)}
           </nav>
-          <div className="hidden items-center gap-3 lg:flex"><ButtonLink href="/contact" secondary testId="link-header-contact">Get in touch</ButtonLink><ButtonLink href="/book" testId="link-header-book">Request an appointment <ArrowUpRight size={15} /></ButtonLink></div>
+            <div className="hidden items-center gap-3 lg:flex"><ButtonLink href="/contact" secondary testId="link-header-contact">Get in touch</ButtonLink>{isSignedIn ? <><ButtonLink href={workspace} secondary testId="link-header-workspace">My workspace</ButtonLink><button type="button" onClick={() => void signOut()} className="focus-ring rounded-full px-2 py-2 text-xs font-bold text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--primary))]" data-testid="button-header-sign-out">Sign out</button></> : <><ButtonLink href="/sign-in" secondary testId="link-header-login">Log in</ButtonLink><ButtonLink href="/sign-up" secondary testId="link-header-sign-up">Sign up</ButtonLink></>}<ButtonLink href="/book" testId="link-header-book">Request an appointment <ArrowUpRight size={15} /></ButtonLink></div>
           <button type="button" aria-label={mobileOpen ? 'Close navigation' : 'Open navigation'} onClick={() => setMobileOpen((value) => !value)} className="focus-ring grid size-11 place-items-center rounded-full border border-[hsl(var(--border))] text-[hsl(var(--primary))] lg:hidden" data-testid="button-mobile-menu">{mobileOpen ? <X size={21} /> : <Menu size={21} />}</button>
         </div>
-        {mobileOpen && <div className="border-t border-[hsl(var(--border))] bg-[hsl(var(--background))] px-5 pb-5 pt-3 lg:hidden" data-testid="mobile-navigation"><nav className="page-wrap flex flex-col" aria-label="Mobile navigation">{navItems.map((item) => <Link key={item.href} href={item.href} className={`focus-ring border-b border-[hsl(var(--border)/.7)] py-4 text-base font-semibold ${location === item.href ? 'text-[hsl(var(--primary))]' : 'text-[hsl(var(--foreground))]'}`} data-testid={`link-mobile-${item.label.toLowerCase().replaceAll(' ', '-')}`}>{item.label}</Link>)}<div className="mt-4 grid grid-cols-2 gap-2"><ButtonLink href="/contact" secondary testId="link-mobile-contact">Get in touch</ButtonLink><ButtonLink href="/book" testId="link-mobile-book">Book a first step</ButtonLink></div></nav></div>}
+          {mobileOpen && <div className="border-t border-[hsl(var(--border))] bg-[hsl(var(--background))] px-5 pb-5 pt-3 lg:hidden" data-testid="mobile-navigation"><nav className="page-wrap flex flex-col" aria-label="Mobile navigation">{navItems.map((item) => <Link key={item.href} href={item.href} className={`focus-ring border-b border-[hsl(var(--border)/.7)] py-4 text-base font-semibold ${location === item.href ? 'text-[hsl(var(--primary))]' : 'text-[hsl(var(--foreground))]'}`} data-testid={`link-mobile-${item.label.toLowerCase().replaceAll(' ', '-')}`}>{item.label}</Link>)}<div className="mt-4 grid grid-cols-2 gap-2"><ButtonLink href="/contact" secondary testId="link-mobile-contact">Get in touch</ButtonLink><ButtonLink href="/book" testId="link-mobile-book">Book a first step</ButtonLink></div><div className="mt-2 grid grid-cols-2 gap-2">{isSignedIn ? <><ButtonLink href={workspace} secondary testId="link-mobile-workspace">My workspace</ButtonLink><button type="button" onClick={() => void signOut()} className="focus-ring rounded-full border border-[hsl(var(--border))] px-4 py-3 text-xs font-bold text-[hsl(var(--primary))]" data-testid="button-mobile-sign-out">Sign out</button></> : <><ButtonLink href="/sign-in" secondary testId="link-mobile-login">Log in</ButtonLink><ButtonLink href="/sign-up" secondary testId="link-mobile-sign-up">Sign up</ButtonLink></>}</div></nav></div>}
       </header>
       <main>{children}</main>
       <Footer content={content} />
@@ -314,6 +334,9 @@ function Field({ label, id, value, onChange, required, type = 'text', textarea =
 }
 
 function Booking() {
+  const { isLoaded, isSignedIn } = useAuth();
+  const { user } = useUser();
+  const profileQuery = useGetMyProfile({ query: { enabled: isLoaded && !!isSignedIn, queryKey: getGetMyProfileQueryKey() } });
   const servicesQuery = useGetServices({ query: { queryKey: getGetServicesQueryKey() } });
   const services = servicesQuery.data ?? [];
   const [form, setForm] = useState({ serviceId: '', date: '', time: '', name: '', email: '', phone: '', message: '' });
@@ -322,6 +345,15 @@ function Booking() {
   const mutation = useCreateAppointment();
   const [complete, setComplete] = useState(false);
   const [error, setError] = useState('');
+  useEffect(() => {
+    const profile = profileQuery.data;
+    setForm((current) => ({
+      ...current,
+      name: current.name || profile?.fullName || user?.fullName || '',
+      email: current.email || user?.primaryEmailAddress?.emailAddress || '',
+      phone: current.phone || profile?.phone || '',
+    }));
+  }, [profileQuery.data, user?.fullName, user?.primaryEmailAddress?.emailAddress]);
   const update = (key: keyof typeof form, value: string) => setForm((current) => ({ ...current, [key]: value, ...(key === 'date' ? { time: '' } : {}) }));
   const submit = (event: FormEvent) => { event.preventDefault(); setError(''); mutation.mutate({ data: { serviceId: Number(form.serviceId), preferredDate: form.date, preferredTime: form.time, name: form.name, email: form.email, phone: form.phone, message: form.message || null } }, { onSuccess: () => setComplete(true), onError: (err) => setError(errorText(err)) }); };
   if (complete) return <div><PageIntro eyebrow="Appointment request" title="Your request is on its way." description="This is a request, not a confirmed appointment. The practice will need to respond before a time is final." /><section className="page-wrap py-20 md:py-28"><SuccessState title="Thank you for taking this first step." text="Keep an eye on the contact details you shared. If you need to add context, you can send a separate message." onReset={() => { setComplete(false); setForm({ serviceId: '', date: '', time: '', name: '', email: '', phone: '', message: '' }); }} resetLabel="Make another request" /><div className="mt-10 text-center"><Link href="/" className="focus-ring inline-flex items-center gap-2 text-sm font-bold text-[hsl(var(--primary))]" data-testid="link-book-home"><ArrowLeft size={15} /> Back to home</Link></div></section></div>;
@@ -332,15 +364,14 @@ function SuccessState({ title, text, onReset, resetLabel }: { title: string; tex
   return <div className="mx-auto max-w-xl rounded-[28px] border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-8 text-center md:p-12" data-testid="state-success"><div className="mx-auto grid size-16 place-items-center rounded-full bg-[hsl(var(--secondary))] text-[hsl(var(--primary))]"><Check size={28} /></div><h2 className="serif mt-7 text-3xl text-[hsl(var(--primary))]">{title}</h2><p className="mt-4 text-sm leading-7 text-[hsl(var(--muted-foreground))]">{text}</p><button type="button" onClick={onReset} className="focus-ring mt-7 rounded-full border border-[hsl(var(--primary)/.25)] px-5 py-3 text-sm font-bold text-[hsl(var(--primary))]" data-testid="button-reset-form">{resetLabel}</button></div>;
 }
 
-type AdminTab = 'appointments' | 'availability' | 'services' | 'faqs' | 'messages';
+type AdminTab = 'appointments' | 'availability' | 'services' | 'faqs' | 'messages' | 'staff';
 type AppointmentFilter = 'all' | AppointmentStatusProperty;
 
 function Admin() {
-  return <div><PageIntro eyebrow="Practice admin" title="A private place to keep the practice moving." description="Manage appointment requests, availability, public services, FAQs, and incoming questions from one protected workspace." /><Show when="signed-out"><section className="page-wrap py-20 md:py-28"><div className="mx-auto max-w-xl rounded-[28px] border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-8 text-center md:p-12"><div className="mx-auto grid size-14 place-items-center rounded-2xl bg-[hsl(var(--secondary))] text-[hsl(var(--primary))]"><LockKeyhole size={25} /></div><h2 className="serif mt-7 text-3xl text-[hsl(var(--primary))]">Sign in to continue</h2><p className="mt-4 leading-7 text-[hsl(var(--muted-foreground))]">This area is private and appointment or contact details are never shown publicly.</p><Link href="/sign-in" className="focus-ring mt-7 inline-flex rounded-full bg-[hsl(var(--primary))] px-5 py-3 text-sm font-bold text-[hsl(var(--primary-foreground))]" data-testid="link-admin-sign-in">Sign in securely</Link></div></section></Show><Show when="signed-in"><AdminDashboard /></Show></div>;
+  return <div><PageIntro eyebrow="Practice admin" title="A private place to keep the practice moving." description="Manage appointment requests, availability, public services, FAQs, incoming questions, and staff verification from one protected workspace." /><Show when="signed-out"><section className="page-wrap py-20 md:py-28"><div className="mx-auto max-w-xl rounded-[28px] border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-8 text-center md:p-12"><div className="mx-auto grid size-14 place-items-center rounded-2xl bg-[hsl(var(--secondary))] text-[hsl(var(--primary))]"><LockKeyhole size={25} /></div><h2 className="serif mt-7 text-3xl text-[hsl(var(--primary))]">Sign in to continue</h2><p className="mt-4 leading-7 text-[hsl(var(--muted-foreground))]">This area is private and appointment or contact details are never shown publicly.</p><Link href="/sign-in?redirect_url=%2Fadmin" className="focus-ring mt-7 inline-flex rounded-full bg-[hsl(var(--primary))] px-5 py-3 text-sm font-bold text-[hsl(var(--primary-foreground))]" data-testid="link-admin-sign-in">Sign in securely</Link></div></section></Show><Show when="signed-in"><AdminDashboard /></Show></div>;
 }
 
 function AdminDashboard() {
-  const { userId } = useAuth();
   const [tab, setTab] = useState<AdminTab>('appointments');
   const [filter, setFilter] = useState<AppointmentFilter>('all');
   const appointmentsQuery = useGetAdminAppointments(filter === 'all' ? undefined : { status: filter }, { query: { queryKey: getGetAdminAppointmentsQueryKey(filter === 'all' ? undefined : { status: filter }) } });
@@ -348,10 +379,12 @@ function AdminDashboard() {
   const servicesQuery = useGetAdminServices({ query: { queryKey: getGetAdminServicesQueryKey() } });
   const faqsQuery = useGetAdminFaqs({ query: { queryKey: getGetAdminFaqsQueryKey() } });
   const messagesQuery = useGetAdminContactMessages({ query: { queryKey: getGetAdminContactMessagesQueryKey() } });
+  const staffRequestsQuery = useGetAdminStaffRequests(undefined, { query: { queryKey: getGetAdminStaffRequestsQueryKey() } });
   const appointments = appointmentsQuery.data ?? [];
   const services = servicesQuery.data ?? [];
   const faqs = faqsQuery.data ?? [];
   const messages = messagesQuery.data ?? [];
+  const staffRequests = staffRequestsQuery.data ?? [];
   const invalidate = (key: readonly unknown[]) => void queryClient.invalidateQueries({ queryKey: key });
   const appointmentMutation = useUpdateAdminAppointment({ mutation: { onSuccess: () => invalidate(getGetAdminAppointmentsQueryKey(filter === 'all' ? undefined : { status: filter })) } });
   const availabilityMutation = useUpdateAdminAvailability({ mutation: { onSuccess: () => invalidate(getGetAdminAvailabilityQueryKey()) } });
@@ -361,10 +394,11 @@ function AdminDashboard() {
   const faqCreate = useCreateAdminFaq({ mutation: { onSuccess: () => invalidate(getGetAdminFaqsQueryKey()) } });
   const faqUpdate = useUpdateAdminFaq({ mutation: { onSuccess: () => invalidate(getGetAdminFaqsQueryKey()) } });
   const faqDelete = useDeleteAdminFaq({ mutation: { onSuccess: () => invalidate(getGetAdminFaqsQueryKey()) } });
+  const staffUpdate = useUpdateAdminStaffRequest({ mutation: { onSuccess: () => invalidate(getGetAdminStaffRequestsQueryKey()) } });
 
-  const busy = appointmentMutation.isPending || availabilityMutation.isPending || serviceCreate.isPending || serviceUpdate.isPending || serviceDelete.isPending || faqCreate.isPending || faqUpdate.isPending || faqDelete.isPending;
-  const queryError = appointmentsQuery.error ?? availabilityQuery.error ?? servicesQuery.error ?? faqsQuery.error ?? messagesQuery.error;
-  const accessDenied = [appointmentsQuery.error, availabilityQuery.error, servicesQuery.error, faqsQuery.error, messagesQuery.error].some((error) => errorStatus(error) === 401 || errorStatus(error) === 403);
+  const busy = appointmentMutation.isPending || availabilityMutation.isPending || serviceCreate.isPending || serviceUpdate.isPending || serviceDelete.isPending || faqCreate.isPending || faqUpdate.isPending || faqDelete.isPending || staffUpdate.isPending;
+  const queryError = appointmentsQuery.error ?? availabilityQuery.error ?? servicesQuery.error ?? faqsQuery.error ?? messagesQuery.error ?? staffRequestsQuery.error;
+  const accessDenied = [appointmentsQuery.error, availabilityQuery.error, servicesQuery.error, faqsQuery.error, messagesQuery.error, staffRequestsQuery.error].some((error) => errorStatus(error) === 401 || errorStatus(error) === 403);
 
   if (accessDenied) {
     return <section className="page-wrap py-20 md:py-28" data-testid="admin-access-denied"><div className="mx-auto max-w-xl rounded-[28px] border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-8 text-center md:p-12"><div className="mx-auto grid size-14 place-items-center rounded-2xl bg-[hsl(var(--secondary))] text-[hsl(var(--primary))]"><LockKeyhole size={25} /></div><h2 className="serif mt-7 text-3xl text-[hsl(var(--primary))]">Admin access is restricted</h2><p className="mt-4 leading-7 text-[hsl(var(--muted-foreground))]">This signed-in account is not authorised for practice administration. No private practice data is available to this account.</p><Link href="/" className="focus-ring mt-7 inline-flex rounded-full border border-[hsl(var(--primary)/.25)] px-5 py-3 text-sm font-bold text-[hsl(var(--primary))]" data-testid="link-admin-access-denied-home">Return to the public site</Link></div></section>;
@@ -373,18 +407,23 @@ function AdminDashboard() {
   return <section className="page-wrap py-12 md:py-16" data-testid="admin-dashboard">
       <div className="mb-8 flex flex-col justify-between gap-5 md:flex-row md:items-end">
       <div><p className="eyebrow">Private workspace</p><h2 className="section-title mt-3 text-[hsl(var(--primary))]">Practice overview</h2><p className="mt-3 max-w-xl text-sm leading-6 text-[hsl(var(--muted-foreground))]">Changes here affect what visitors can request and what appears on the public site.</p></div>
-      <div className="flex flex-wrap items-center gap-3">{userId && <span className="rounded-full border border-[hsl(var(--border))] bg-[hsl(var(--card))] px-4 py-2 font-mono text-[11px] text-[hsl(var(--muted-foreground))]" title="Use this value for ADMIN_CLERK_USER_IDS">Clerk ID: {userId}</span>}{busy && <span className="inline-flex items-center gap-2 rounded-full bg-[hsl(var(--secondary))] px-4 py-2 text-xs font-bold text-[hsl(var(--primary))]"><span className="size-2 animate-pulse rounded-full bg-[hsl(var(--accent))]" /> Saving changes</span>}</div>
+      <div className="flex flex-wrap items-center gap-3">{busy && <span className="inline-flex items-center gap-2 rounded-full bg-[hsl(var(--secondary))] px-4 py-2 text-xs font-bold text-[hsl(var(--primary))]"><span className="size-2 animate-pulse rounded-full bg-[hsl(var(--accent))]" /> Saving changes</span>}</div>
     </div>
-    {queryError && <div className="mb-6"><DataState kind="error" message={errorText(queryError)} onRetry={() => { void appointmentsQuery.refetch(); void availabilityQuery.refetch(); void servicesQuery.refetch(); void faqsQuery.refetch(); void messagesQuery.refetch(); }} /></div>}
+    {queryError && <div className="mb-6"><DataState kind="error" message={errorText(queryError)} onRetry={() => { void appointmentsQuery.refetch(); void availabilityQuery.refetch(); void servicesQuery.refetch(); void faqsQuery.refetch(); void messagesQuery.refetch(); void staffRequestsQuery.refetch(); }} /></div>}
     <div className="mb-8 flex gap-2 overflow-x-auto border-b border-[hsl(var(--border))] pb-2" role="tablist" aria-label="Practice administration">
-      {([['appointments', 'Appointments', CalendarClock], ['availability', 'Availability', Settings2], ['services', 'Services', HeartHandshake], ['faqs', 'FAQs', MessageCircle], ['messages', 'Messages', Inbox] ] as const).map(([value, label, Icon]) => <button key={value} type="button" role="tab" aria-selected={tab === value} onClick={() => setTab(value)} className={`focus-ring inline-flex shrink-0 items-center gap-2 rounded-full px-4 py-2.5 text-sm font-bold transition ${tab === value ? 'bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))]' : 'text-[hsl(var(--muted-foreground))] hover:bg-[hsl(var(--secondary))] hover:text-[hsl(var(--primary))]'}`} data-testid={`tab-admin-${value}`}><Icon size={15} />{label}</button>)}
+      {([['appointments', 'Appointments', CalendarClock], ['availability', 'Availability', Settings2], ['services', 'Services', HeartHandshake], ['faqs', 'FAQs', MessageCircle], ['messages', 'Messages', Inbox], ['staff', 'Verification', ShieldCheck] ] as const).map(([value, label, Icon]) => <button key={value} type="button" role="tab" aria-selected={tab === value} onClick={() => setTab(value)} className={`focus-ring inline-flex shrink-0 items-center gap-2 rounded-full px-4 py-2.5 text-sm font-bold transition ${tab === value ? 'bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))]' : 'text-[hsl(var(--muted-foreground))] hover:bg-[hsl(var(--secondary))] hover:text-[hsl(var(--primary))]'}`} data-testid={`tab-admin-${value}`}><Icon size={15} />{label}</button>)}
     </div>
     {tab === 'appointments' && <AppointmentsPanel appointments={appointments} filter={filter} setFilter={setFilter} onUpdate={(id, data) => appointmentMutation.mutate({ id, data })} />}
     {tab === 'availability' && <AvailabilityPanel settings={availabilityQuery.data} onSave={(data) => availabilityMutation.mutate({ data })} />}
     {tab === 'services' && <ServicesPanel services={services} onCreate={(data) => serviceCreate.mutate({ data })} onUpdate={(id, data) => serviceUpdate.mutate({ id, data })} onDelete={(id) => { if (window.confirm('Delete this service? Existing appointment records will remain, but the service will no longer be available.')) serviceDelete.mutate({ id }); }} />}
     {tab === 'faqs' && <FaqsPanel faqs={faqs} onCreate={(data) => faqCreate.mutate({ data })} onUpdate={(id, data) => faqUpdate.mutate({ id, data })} onDelete={(id) => { if (window.confirm('Delete this FAQ from the practice?')) faqDelete.mutate({ id }); }} />}
     {tab === 'messages' && <MessagesPanel messages={messages} />}
+    {tab === 'staff' && <StaffRequestsPanel requests={staffRequests} onUpdate={(id, data) => staffUpdate.mutate({ id, data })} />}
   </section>;
+}
+
+function StaffRequestsPanel({ requests, onUpdate }: { requests: StaffRequest[]; onUpdate: (id: number, data: { verificationStatus: 'verified' | 'rejected'; rejectionReason?: string | null }) => void }) {
+  return <AdminPanelShell title="Verification requests" description="Review role requests privately. Approving a request changes server-side access; choosing a role never does that by itself.">{requests.length === 0 ? <DataState kind="empty" message="No staff verification requests are waiting for review." /> : <div className="space-y-3">{requests.map((request) => <article key={request.id} className="rounded-2xl border border-[hsl(var(--border))] bg-[hsl(var(--card)/.55)] p-5" data-testid={`card-staff-request-${request.id}`}><div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-start"><div><div className="flex flex-wrap items-center gap-2"><h3 className="font-bold text-[hsl(var(--primary))]">{request.fullName}</h3><StatusPill status={request.verificationStatus === 'verified' ? 'confirmed' : request.verificationStatus === 'rejected' ? 'rejected' : 'pending'} /></div><p className="mt-1 text-sm text-[hsl(var(--muted-foreground))]">{request.requestedRole === 'admin' ? 'Practice administrator' : 'Counsellor / staff'} · {request.professionalRole}</p></div><span className="text-xs text-[hsl(var(--muted-foreground))]">{request.requestedAt.slice(0, 10)}</span></div><div className="mt-5 grid gap-4 border-t border-[hsl(var(--border))] pt-5 text-sm md:grid-cols-2"><div><p className="eyebrow">Professional details</p><p className="mt-2 text-[hsl(var(--muted-foreground))]">{request.qualification} · {request.experienceYears ?? 'Experience not specified'} years</p><p className="mt-1 text-[hsl(var(--muted-foreground))]">{request.expertise}</p></div><div><p className="eyebrow">Contact</p><p className="mt-2 text-[hsl(var(--muted-foreground))]">{request.professionalEmail || 'No professional email provided'} · {request.phone}</p><p className="mt-1 text-[hsl(var(--muted-foreground))]">{request.languagesSpoken}</p></div></div>{request.rejectionReason && <p className="mt-4 rounded-xl bg-[hsl(var(--destructive)/.08)] p-3 text-sm text-[hsl(var(--destructive))]">Reason: {request.rejectionReason}</p>}{request.verificationStatus === 'pending' && <div className="mt-5 flex flex-wrap gap-2"><button type="button" onClick={() => onUpdate(request.id, { verificationStatus: 'verified' })} className="focus-ring rounded-full bg-[hsl(var(--primary))] px-4 py-2.5 text-xs font-bold text-[hsl(var(--primary-foreground))]" data-testid={`button-verify-staff-${request.id}`}>Verify request</button><button type="button" onClick={() => onUpdate(request.id, { verificationStatus: 'rejected', rejectionReason: window.prompt('Optional reason for declining this request') || null })} className="focus-ring rounded-full border border-[hsl(var(--destructive)/.35)] px-4 py-2.5 text-xs font-bold text-[hsl(var(--destructive))]" data-testid={`button-reject-staff-${request.id}`}>Decline request</button></div>}</article>)}</div>}</AdminPanelShell>;
 }
 
 function AdminPanelShell({ title, description, children }: { title: string; description: string; children: ReactNode }) {
@@ -445,12 +484,23 @@ function TrustPage({ type }: { type: 'privacy' | 'terms' | 'disclaimer' }) {
   const copy = { privacy: { eyebrow: 'Privacy', title: 'A plain-language note about information and this website.', intro: 'This page describes the intended boundaries of this public website. It is not a substitute for a practice-specific legal or clinical privacy notice.', sections: [['What we collect', 'When you use the contact or appointment forms, you choose to share details such as your name, email, phone number, preferred time, and message. Please keep forms brief and avoid sharing urgent or highly sensitive information.'], ['How it is used', 'Information submitted through this website is intended to help respond to your enquiry or appointment request. It should not be used as a place to store an ongoing clinical record.'], ['Your choices', 'You can ask what information has been received, request clarification, or choose not to continue. Practice-specific retention and deletion details will be published when the practice is fully configured.']] }, terms: { eyebrow: 'Terms of use', title: 'A respectful, limited use of this website.', intro: 'By using this website, you agree to use it for genuine information, contact, and appointment enquiries.', sections: [['Information is illustrative until published', 'Some practice details may be marked as unpublished placeholders. Do not treat those details as confirmed credentials, availability, pricing, or contact channels.'], ['Requests are not confirmations', 'Submitting an appointment form does not create a confirmed appointment or therapeutic relationship. A response from the practice is needed before a time is final.'], ['Please use the site safely', 'Do not use forms for emergencies, crisis support, or detailed medical information. The practice may update this information as its public service is prepared.']] }, disclaimer: { eyebrow: 'Important disclaimer', title: 'Some things this website cannot provide.', intro: 'The information here is general public information about a counselling practice. It does not provide diagnosis, treatment, crisis support, or medical advice.', sections: [['Not an emergency service', 'If you may be in immediate danger, contact local emergency services or a crisis support line in your area. Do not wait for a form or email response.'], ['No promise of outcome', 'Counselling is personal and experiences vary. Nothing on this website promises a particular result or represents a clinical claim.'], ['A first request is only a first request', 'Contacting the practice is an invitation to begin a conversation. It is not a guarantee of availability, suitability, or a confirmed appointment.']] } }[type]; return <div><PageIntro eyebrow={copy.eyebrow} title={copy.title} description={copy.intro} /><section className="page-wrap max-w-3xl py-20 md:py-28"><div className="space-y-10">{copy.sections.map(([heading, text]) => <article key={heading} className="border-b border-[hsl(var(--border))] pb-9"><h2 className="serif text-2xl text-[hsl(var(--primary))]">{heading}</h2><p className="mt-3 leading-7 text-[hsl(var(--muted-foreground))]">{text}</p></article>)}</div><ButtonLink href="/contact" secondary className="mt-10" testId={`link-${type}-contact`}>Ask a question <ArrowUpRight size={15} /></ButtonLink></section></div>;
 }
 
+function safeRedirect(value: string | null, fallback: string) {
+  if (!value) return fallback;
+  try {
+    const url = new URL(value, window.location.origin);
+    return url.origin === window.location.origin ? `${url.pathname}${url.search}${url.hash}` : fallback;
+  } catch {
+    return fallback;
+  }
+}
+
 function SignInPage() {
-  return <div className="flex min-h-[100dvh] items-center justify-center bg-[hsl(var(--background))] px-4"><SignIn routing="path" path={`${basePath}/sign-in`} signUpUrl={`${basePath}/sign-up`} /></div>;
+  const redirect = safeRedirect(new URLSearchParams(window.location.search).get('redirect_url'), `${basePath}/dashboard`);
+  return <div className="grain flex min-h-[100dvh] items-center justify-center bg-[hsl(var(--background))] px-4 py-8"><SignIn routing="path" path={`${basePath}/sign-in`} signUpUrl={`${basePath}/sign-up`} forceRedirectUrl={redirect} fallbackRedirectUrl={redirect} /></div>;
 }
 
 function SignUpPage() {
-  return <div className="flex min-h-[100dvh] items-center justify-center bg-[hsl(var(--background))] px-4"><SignUp routing="path" path={`${basePath}/sign-up`} signInUrl={`${basePath}/sign-in`} /></div>;
+  return <div className="grain flex min-h-[100dvh] items-center justify-center bg-[hsl(var(--background))] px-4 py-8"><SignUp routing="path" path={`${basePath}/sign-up`} signInUrl={`${basePath}/sign-in`} forceRedirectUrl={`${basePath}/onboarding`} fallbackRedirectUrl={`${basePath}/onboarding`} /></div>;
 }
 
 function PublicShell() {
@@ -459,12 +509,26 @@ function PublicShell() {
 }
 
 function Router() {
-  return <Switch><Route path="/sign-in/*?" component={SignInPage} /><Route path="/sign-up/*?" component={SignUpPage} /><Route component={PublicShell} /></Switch>;
+  return <Switch><Route path="/sign-in/*?" component={SignInPage} /><Route path="/sign-up/*?" component={SignUpPage} /><Route path="/onboarding" component={Onboarding} /><Route path="/dashboard" component={Dashboard} /><Route path="/staff" component={Staff} /><Route component={PublicShell} /></Switch>;
+}
+
+function ClerkQueryClientCacheInvalidator() {
+  const { addListener } = useClerk();
+  const previousUserId = useRef<string | null | undefined>(undefined);
+  useEffect(() => {
+    const unsubscribe = addListener(({ user }) => {
+      const nextUserId = user?.id ?? null;
+      if (previousUserId.current !== undefined && previousUserId.current !== nextUserId) queryClient.clear();
+      previousUserId.current = nextUserId;
+    });
+    return unsubscribe;
+  }, [addListener]);
+  return null;
 }
 
 function App() {
   if (!clerkPubKey) throw new Error('Missing VITE_CLERK_PUBLISHABLE_KEY');
-  return <WouterRouter base={basePath}><ClerkProvider publishableKey={clerkPubKey} proxyUrl={clerkProxyUrl} appearance={clerkAppearance} signInUrl={`${basePath}/sign-in`} signUpUrl={`${basePath}/sign-up`} routerPush={(to) => window.history.pushState({}, '', stripBase(to))} routerReplace={(to) => window.history.replaceState({}, '', stripBase(to))}><QueryClientProvider client={queryClient}><TooltipProvider><Router /></TooltipProvider><Toaster /></QueryClientProvider></ClerkProvider></WouterRouter>;
+  return <WouterRouter base={basePath}><ClerkProvider publishableKey={clerkPubKey} proxyUrl={clerkProxyUrl} appearance={clerkAppearance} signInUrl={`${basePath}/sign-in`} signUpUrl={`${basePath}/sign-up`} routerPush={(to) => window.history.pushState({}, '', stripBase(to))} routerReplace={(to) => window.history.replaceState({}, '', stripBase(to))}><QueryClientProvider client={queryClient}><ClerkQueryClientCacheInvalidator /><TooltipProvider><Router /></TooltipProvider><Toaster /></QueryClientProvider></ClerkProvider></WouterRouter>;
 }
 
 export default App;

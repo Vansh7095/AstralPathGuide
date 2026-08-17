@@ -120,6 +120,204 @@ export const CreateAppointmentResponse = zod.object({
 
 
 /**
+ * @summary Get the signed-in user's profile and access state
+ */
+export const GetMyProfileResponse = zod.object({
+  "accountType": zod.union([zod.literal('client'),zod.literal('staff'),zod.literal('admin'),zod.literal(null)]).nullable(),
+  "role": zod.enum(['client', 'staff', 'admin']),
+  "onboardingStatus": zod.enum(['not_started', 'in_progress', 'complete']),
+  "verificationStatus": zod.union([zod.literal('pending'),zod.literal('verified'),zod.literal('rejected'),zod.literal(null)]).nullable(),
+  "fullName": zod.string().nullable(),
+  "preferredName": zod.string().nullable(),
+  "phone": zod.string().nullable(),
+  "dateOfBirth": zod.string().nullable(),
+  "preferredContactMethod": zod.string().nullable(),
+  "location": zod.string().nullable(),
+  "emergencyContactName": zod.string().nullable(),
+  "emergencyContactPhone": zod.string().nullable(),
+  "counsellingReason": zod.string().nullable(),
+  "preferredFormat": zod.string().nullable(),
+  "preferredLanguage": zod.string().nullable(),
+  "accessibilityRequirements": zod.string().nullable(),
+  "counsellingGoals": zod.string().nullable()
+})
+
+
+/**
+ * @summary Save counselling profile and account type
+ */
+export const updateMyProfileBodyFullNameMin = 2;
+
+
+
+export const UpdateMyProfileBody = zod.object({
+  "accountType": zod.enum(['client', 'staff', 'admin']),
+  "fullName": zod.string().min(updateMyProfileBodyFullNameMin),
+  "preferredName": zod.string().nullish(),
+  "phone": zod.string().nullish(),
+  "dateOfBirth": zod.string().nullish(),
+  "preferredContactMethod": zod.string().nullish(),
+  "location": zod.string().nullish(),
+  "emergencyContactName": zod.string().nullish(),
+  "emergencyContactPhone": zod.string().nullish(),
+  "counsellingReason": zod.string().nullish(),
+  "preferredFormat": zod.string().nullish(),
+  "preferredLanguage": zod.string().nullish(),
+  "accessibilityRequirements": zod.string().nullish(),
+  "counsellingGoals": zod.string().nullish()
+})
+
+export const UpdateMyProfileResponse = zod.object({
+  "accountType": zod.union([zod.literal('client'),zod.literal('staff'),zod.literal('admin'),zod.literal(null)]).nullable(),
+  "role": zod.enum(['client', 'staff', 'admin']),
+  "onboardingStatus": zod.enum(['not_started', 'in_progress', 'complete']),
+  "verificationStatus": zod.union([zod.literal('pending'),zod.literal('verified'),zod.literal('rejected'),zod.literal(null)]).nullable(),
+  "fullName": zod.string().nullable(),
+  "preferredName": zod.string().nullable(),
+  "phone": zod.string().nullable(),
+  "dateOfBirth": zod.string().nullable(),
+  "preferredContactMethod": zod.string().nullable(),
+  "location": zod.string().nullable(),
+  "emergencyContactName": zod.string().nullable(),
+  "emergencyContactPhone": zod.string().nullable(),
+  "counsellingReason": zod.string().nullable(),
+  "preferredFormat": zod.string().nullable(),
+  "preferredLanguage": zod.string().nullable(),
+  "accessibilityRequirements": zod.string().nullable(),
+  "counsellingGoals": zod.string().nullable()
+})
+
+
+/**
+ * @summary Request staff or counsellor verification
+ */
+export const createStaffRequestBodyFullNameMin = 2;
+
+export const createStaffRequestBodyProfessionalRoleMin = 2;
+
+export const createStaffRequestBodyPhoneMin = 7;
+
+export const createStaffRequestBodyQualificationMin = 2;
+
+export const createStaffRequestBodyExperienceYearsMin = 0;
+
+export const createStaffRequestBodyExpertiseMin = 2;
+
+export const createStaffRequestBodyLanguagesSpokenMin = 2;
+
+
+
+export const CreateStaffRequestBody = zod.object({
+  "requestedRole": zod.enum(['staff', 'admin']),
+  "fullName": zod.string().min(createStaffRequestBodyFullNameMin),
+  "professionalRole": zod.string().min(createStaffRequestBodyProfessionalRoleMin),
+  "phone": zod.string().min(createStaffRequestBodyPhoneMin),
+  "professionalEmail": zod.email().nullish(),
+  "qualification": zod.string().min(createStaffRequestBodyQualificationMin),
+  "experienceYears": zod.int().min(createStaffRequestBodyExperienceYearsMin).nullish(),
+  "expertise": zod.string().min(createStaffRequestBodyExpertiseMin),
+  "languagesSpoken": zod.string().min(createStaffRequestBodyLanguagesSpokenMin),
+  "availabilityPreferences": zod.string().nullish(),
+  "authorizationCode": zod.string().nullish()
+})
+
+export const CreateStaffRequestResponse = zod.object({
+  "id": zod.int(),
+  "requestedRole": zod.enum(['staff', 'admin']),
+  "verificationStatus": zod.enum(['pending', 'verified', 'rejected']),
+  "fullName": zod.string(),
+  "professionalRole": zod.string(),
+  "phone": zod.string(),
+  "professionalEmail": zod.string().nullable(),
+  "qualification": zod.string(),
+  "experienceYears": zod.int().nullable(),
+  "expertise": zod.string(),
+  "languagesSpoken": zod.string(),
+  "availabilityPreferences": zod.string().nullable(),
+  "rejectionReason": zod.string().nullable(),
+  "requestedAt": zod.string(),
+  "verifiedAt": zod.string().nullable()
+})
+
+
+/**
+ * @summary List the signed-in user's appointment requests
+ */
+export const GetMyAppointmentsResponseItem = zod.object({
+  "id": zod.int(),
+  "serviceId": zod.int(),
+  "serviceName": zod.string(),
+  "preferredDate": zod.coerce.date(),
+  "preferredTime": zod.string(),
+  "name": zod.string(),
+  "email": zod.string(),
+  "phone": zod.string(),
+  "message": zod.string().nullable(),
+  "status": zod.enum(['pending', 'confirmed', 'cancelled', 'completed', 'rejected']),
+  "createdAt": zod.string()
+})
+export const GetMyAppointmentsResponse = zod.array(GetMyAppointmentsResponseItem)
+
+
+/**
+ * @summary List staff and counsellor verification requests
+ */
+export const GetAdminStaffRequestsQueryParams = zod.object({
+  "status": zod.enum(['pending', 'verified', 'rejected']).optional()
+})
+
+export const GetAdminStaffRequestsResponseItem = zod.object({
+  "id": zod.int(),
+  "requestedRole": zod.enum(['staff', 'admin']),
+  "verificationStatus": zod.enum(['pending', 'verified', 'rejected']),
+  "fullName": zod.string(),
+  "professionalRole": zod.string(),
+  "phone": zod.string(),
+  "professionalEmail": zod.string().nullable(),
+  "qualification": zod.string(),
+  "experienceYears": zod.int().nullable(),
+  "expertise": zod.string(),
+  "languagesSpoken": zod.string(),
+  "availabilityPreferences": zod.string().nullable(),
+  "rejectionReason": zod.string().nullable(),
+  "requestedAt": zod.string(),
+  "verifiedAt": zod.string().nullable()
+})
+export const GetAdminStaffRequestsResponse = zod.array(GetAdminStaffRequestsResponseItem)
+
+
+/**
+ * @summary Approve or reject a staff verification request
+ */
+export const UpdateAdminStaffRequestParams = zod.object({
+  "id": zod.coerce.number().int()
+})
+
+export const UpdateAdminStaffRequestBody = zod.object({
+  "verificationStatus": zod.enum(['verified', 'rejected', 'pending']),
+  "rejectionReason": zod.string().nullish()
+})
+
+export const UpdateAdminStaffRequestResponse = zod.object({
+  "id": zod.int(),
+  "requestedRole": zod.enum(['staff', 'admin']),
+  "verificationStatus": zod.enum(['pending', 'verified', 'rejected']),
+  "fullName": zod.string(),
+  "professionalRole": zod.string(),
+  "phone": zod.string(),
+  "professionalEmail": zod.string().nullable(),
+  "qualification": zod.string(),
+  "experienceYears": zod.int().nullable(),
+  "expertise": zod.string(),
+  "languagesSpoken": zod.string(),
+  "availabilityPreferences": zod.string().nullable(),
+  "rejectionReason": zod.string().nullable(),
+  "requestedAt": zod.string(),
+  "verifiedAt": zod.string().nullable()
+})
+
+
+/**
  * @summary Send a contact message
  */
 export const createContactMessageBodyNameMin = 2;

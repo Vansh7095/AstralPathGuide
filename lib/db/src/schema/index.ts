@@ -20,3 +20,4 @@
 export * from "./booking";
 export * from "./contact";
 export * from "./content";
+export * from "./identity";

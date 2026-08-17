@@ -1,0 +1,270 @@
+Continue and FINISH the existing counselling-practice authentication and onboarding system. Do not redesign the public website and do not remove or break anything that is already working.
+
+The authentication flow must work like this:
+
+1. HOMEPAGE AUTH CTAs
+- On the public homepage/header, signed-out visitors must clearly see:
+  - Login
+  - Sign up
+- Signed-in users should instead see an appropriate Account / Dashboard / Workspace entry and a Sign out option.
+- Keep the existing counselling-practice visual style, typography, spacing, colors, and overall design.
+
+2. LOGIN
+Create/finish the /sign-in route using Clerk.
+When the user clicks Login:
+- Open a dedicated login page.
+- Allow login using email/username + password.
+- Allow Google sign-in through Clerk.
+- Include Clerk's normal forgot-password functionality.
+- After successful login, redirect the user to the appropriate workspace:
+  - normal client/member account -> /dashboard
+  - verified staff/counsellor -> /staff
+  - admin -> /admin
+  - account that has not completed onboarding -> /onboarding
+- Preserve redirect URLs when a user was trying to access a protected page.
+
+3. SIGN UP
+Create/finish the /sign-up route using Clerk.
+The first signup page should allow:
+- Email/username + password
+- Google sign-up
+
+After the Clerk account is created, DO NOT immediately treat the user as a client/staff/admin.
+
+Instead redirect the new account to:
+
+/onboarding
+
+4. COUNSELLING-SPECIFIC ONBOARDING
+The /onboarding page must be a proper multi-step flow.
+
+Step 1: Choose account type / role.
+
+Use roles appropriate to this counselling practice, such as:
+- Client
+- Staff / Counsellor
+- Admin
+
+Do not allow simply selecting "Admin" or "Staff" to grant privileged access.
+
+The role selection is only a REQUEST/INTENT.
+
+5. CLIENT VERIFICATION
+For a normal client/member, collect only information that actually makes sense for a counselling practice.
+
+Use appropriate verification/profile information such as:
+- Full name
+- Phone number
+- Date of birth / age where appropriate
+- Address where genuinely required
+- Emergency contact where appropriate
+- Any other basic profile information necessary for appointments
+
+Do NOT collect Aadhaar or other highly sensitive identity documents merely because they could be collected. Only include identity/document verification if there is a genuine counselling-practice requirement and make it clearly optional/appropriate where possible.
+
+Clearly show the user:
+- what information is being requested
+- why it is needed
+- their verification/account status
+
+6. STAFF / COUNSELLOR VERIFICATION
+If the user selects Staff/Counsellor:
+- Collect the professional information appropriate for a counselling practice.
+- Examples:
+  - Full name
+  - Phone number
+  - Professional role
+  - Qualification
+  - Counselling/mental-health credentials
+  - Experience
+  - Professional registration/license information where applicable
+  - Supporting credential/document upload if the existing architecture supports it
+- Create a staff verification REQUEST.
+- Do NOT grant staff access just because the user selected Staff/Counsellor.
+- The request must remain pending until an administrator verifies/approves it.
+
+The /staff route must only allow authenticated AND verified staff/counsellors.
+Pending/rejected staff requests must never receive privileged staff functionality.
+
+7. ADMIN VERIFICATION
+Admin access must remain separately protected.
+
+Selecting Admin during onboarding must NOT grant admin access.
+
+Admin access should require the existing server-side admin authorization mechanism, including the configured ADMIN_CLERK_USER_IDS allowlist.
+
+Do not expose Clerk user IDs publicly in the UI.
+
+8. ADMIN STAFF VERIFICATION
+The existing /admin dashboard should have a staff verification/request section.
+
+Admins should be able to:
+- See pending staff verification requests
+- Review submitted professional information
+- Approve a legitimate staff/counsellor request
+- Reject a request
+- See the current verification status
+
+Use the existing generated API hooks where they already exist:
+- useGetAdminStaffRequests
+- useUpdateAdminStaffRequest
+- getGetAdminStaffRequestsQueryKey
+- useCreateStaffRequest
+- useGetMyProfile
+- useUpdateMyProfile
+- useGetMyAppointments
+
+Do not invent duplicate APIs if the existing generated API already supports the required operation.
+
+9. CLIENT DASHBOARD
+Finish /dashboard for authenticated normal clients.
+
+It should show:
+- Basic profile/account information
+- Verification/onboarding status
+- Appointment requests/history
+- Relevant appointment status
+- Clear way to return to the public website
+- Clear way to book/request an appointment
+
+Do not expose staff/admin functionality to normal clients.
+
+10. STAFF DASHBOARD
+Finish /staff for verified counsellors/staff.
+
+It must:
+- Require Clerk authentication.
+- Require server-side verified staff access.
+- Show a clear pending/rejected state if staff verification is incomplete.
+- Never trust a role selected in the browser as proof of staff access.
+- Never expose privileged staff data to an unverified user.
+
+11. BOOKING
+Keep the existing public /book route working.
+
+If the visitor is signed out:
+- They may browse the public booking flow as currently designed.
+- If the existing product rules require authentication before final submission, redirect them to sign-in and preserve the booking context.
+
+If signed in:
+- Use their profile information where appropriate.
+- Keep appointment availability and booking validation working.
+- Do not break the existing double-booking protection or appointment-status compatibility logic.
+
+12. CLERK IMPLEMENTATION
+Use the existing Clerk setup.
+
+Use:
+- ClerkProvider
+- useAuth
+- useUser/useClerk where appropriate
+- Clerk <SignIn>
+- Clerk <SignUp>
+
+Use routing="path" and the correct basePath.
+Use forceRedirectUrl/fallbackRedirectUrl appropriately.
+
+IMPORTANT:
+- Do NOT use getToken().
+- Do NOT manually add Authorization headers.
+- Use the existing Clerk browser session/cookie mechanism.
+- Do NOT expose or print any Clerk secret key.
+- Do NOT expose DATABASE_URL or any other secret.
+- Do not weaken server-side authorization.
+
+13. EXISTING ADMIN ALLOWLIST
+The production ADMIN_CLERK_USER_IDS value is already configured with the intended admin Clerk user ID.
+
+Do not overwrite it, remove it, expose it, or replace it with a guessed value.
+
+14. IMPORTANT SECURITY RULE
+Never trust:
+- a role selected during signup
+- a role stored only in localStorage
+- a frontend-only boolean
+- a URL parameter
+- hidden frontend fields
+
+for authorization.
+
+All privileged staff/admin access must be checked server-side.
+
+15. UI/UX
+Make the authentication/onboarding experience feel like part of the existing counselling website:
+- calm
+- trustworthy
+- private
+- professional
+- simple
+- mobile friendly
+
+Do not redesign the existing public pages.
+
+Do not use emojis anywhere in the UI.
+
+Use the existing components and styling system wherever possible.
+
+16. DATABASE/API
+Continue using the existing profile/staff-request architecture that has already been started.
+
+Do not wipe, reset, or replace existing development data.
+
+Do not create duplicate tables/routes if the existing implementation already covers them.
+
+If a schema change is genuinely required:
+- make it safely
+- keep existing records compatible
+- update the API/client types
+- run typechecks/builds afterward
+
+17. FINISH THE ACTUAL IMPLEMENTATION
+Do not stop after creating placeholder screens.
+
+Everything must be connected:
+- Clerk auth
+- onboarding
+- profile
+- role selection
+- client verification
+- staff verification request
+- admin approval/rejection
+- client dashboard
+- staff dashboard
+- protected admin dashboard
+- booking/profile integration
+
+18. TEST EVERYTHING BEFORE FINISHING
+Run:
+- workspace typecheck
+- frontend typecheck
+- API typecheck
+- frontend production build
+- API production build
+
+Then smoke-test:
+- /
+- /sign-in
+- /sign-up
+- /onboarding
+- /dashboard
+- /staff
+- /admin
+- /book
+- /contact
+- /services
+- /faqs
+
+Verify:
+- signed-out users cannot access protected dashboards
+- normal authenticated clients cannot access /staff
+- unverified staff cannot access privileged staff functionality
+- selecting Staff/Admin during signup does NOT itself grant access
+- admin authorization remains server-side
+- existing public pages still work
+- booking still works
+- existing appointment locking/status compatibility remains intact
+
+If something is incomplete because a real user interaction is required, implement everything possible first and then clearly tell me exactly what I need to click/test. Do not guess credentials, Clerk IDs, secret values, or verification results.
+
+MOST IMPORTANT:
+Continue from the code that already exists. Do not start the authentication system from scratch, do not redesign the website, and do not remove the existing working functionality.

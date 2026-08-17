@@ -6,6 +6,7 @@
  * OpenAPI spec version: 0.1.0
  */
 
+export * from './accountType';
 export * from './adminAppointment';
 export * from './adminAppointmentUpdate';
 export * from './adminContactMessage';
@@ -23,9 +24,23 @@ export * from './errorResponse';
 export * from './faq';
 export * from './faqInput';
 export * from './getAdminAppointmentsParams';
+export * from './getAdminStaffRequestsParams';
 export * from './getAvailabilityParams';
 export * from './healthStatus';
+export * from './onboardingStatus';
 export * from './service';
 export * from './serviceInput';
 export * from './siteContent';
+export * from './staffRequest';
+export * from './staffRequestInput';
+export * from './staffRequestInputRequestedRole';
+export * from './staffRequestRequestedRole';
+export * from './staffRequestUpdate';
+export * from './staffRequestUpdateVerificationStatus';
 export * from './timeSlot';
+export * from './userProfile';
+export * from './userProfileAccountType';
+export * from './userProfileInput';
+export * from './userProfileRole';
+export * from './userProfileVerificationStatus';
+export * from './verificationStatus';

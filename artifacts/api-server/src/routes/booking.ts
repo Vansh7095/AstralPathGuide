@@ -1,5 +1,6 @@
 import { Router, type IRouter } from "express";
 import { and, eq, notInArray, sql } from "drizzle-orm";
+import { getAuth } from "@clerk/express";
 import {
   CreateAppointmentBody,
   CreateAppointmentResponse,
@@ -70,6 +71,7 @@ router.post("/appointments", async (req, res, next) => {
       const [inserted] = await tx
         .insert(appointmentsTable)
         .values({
+          clerkUserId: getAuth(req).userId ?? null,
           serviceId: input.serviceId,
           preferredDate,
           preferredTime: input.preferredTime,

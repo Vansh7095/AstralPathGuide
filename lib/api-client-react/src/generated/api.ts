@@ -34,12 +34,18 @@ import type {
   Faq,
   FaqInput,
   GetAdminAppointmentsParams,
+  GetAdminStaffRequestsParams,
   GetAvailabilityParams,
   HealthStatus,
   Service,
   ServiceInput,
   SiteContent,
-  TimeSlot
+  StaffRequest,
+  StaffRequestInput,
+  StaffRequestUpdate,
+  TimeSlot,
+  UserProfile,
+  UserProfileInput
 } from './api.schemas';
 
 import { customFetch } from '../custom-fetch';
@@ -531,6 +537,458 @@ export const useCreateAppointment = <TError = ErrorType<ErrorResponse>,
         TContext
       > => {
       return useMutation(getCreateAppointmentMutationOptions(options));
+    }
+
+export const getGetMyProfileUrl = () => {
+
+
+
+
+  return `/api/me`
+}
+
+/**
+ * @summary Get the signed-in user's profile and access state
+ */
+export const getMyProfile = async ( options?: Parameters<typeof customFetch>[1]): Promise<UserProfile> => {
+
+  return customFetch<UserProfile>(getGetMyProfileUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetMyProfileQueryKey = () => {
+    return [
+    `/api/me`
+    ] as const;
+    }
+
+
+export const getGetMyProfileQueryOptions = <TData = Awaited<ReturnType<typeof getMyProfile>>, TError = ErrorType<ErrorResponse>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getMyProfile>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetMyProfileQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getMyProfile>>> = ({ signal }) => getMyProfile({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getMyProfile>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetMyProfileQueryResult = NonNullable<Awaited<ReturnType<typeof getMyProfile>>>
+export type GetMyProfileQueryError = ErrorType<ErrorResponse>
+
+
+/**
+ * @summary Get the signed-in user's profile and access state
+ */
+
+export function useGetMyProfile<TData = Awaited<ReturnType<typeof getMyProfile>>, TError = ErrorType<ErrorResponse>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getMyProfile>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetMyProfileQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getUpdateMyProfileUrl = () => {
+
+
+
+
+  return `/api/me/profile`
+}
+
+/**
+ * @summary Save counselling profile and account type
+ */
+export const updateMyProfile = async (userProfileInput: UserProfileInput, options?: Parameters<typeof customFetch>[1]): Promise<UserProfile> => {
+
+  return customFetch<UserProfile>(getUpdateMyProfileUrl(),
+  {
+    ...options,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(userProfileInput)
+  }
+);}
+
+
+
+
+
+export const getUpdateMyProfileMutationOptions = <TError = ErrorType<ErrorResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateMyProfile>>, TError,{data: BodyType<UserProfileInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateMyProfile>>, TError,{data: BodyType<UserProfileInput>}, TContext> => {
+
+const mutationKey = ['updateMyProfile'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateMyProfile>>, {data: BodyType<UserProfileInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  updateMyProfile(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateMyProfileMutationResult = NonNullable<Awaited<ReturnType<typeof updateMyProfile>>>
+    export type UpdateMyProfileMutationBody = BodyType<UserProfileInput>
+    export type UpdateMyProfileMutationError = ErrorType<ErrorResponse>
+
+    /**
+ * @summary Save counselling profile and account type
+ */
+export const useUpdateMyProfile = <TError = ErrorType<ErrorResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateMyProfile>>, TError,{data: BodyType<UserProfileInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof updateMyProfile>>,
+        TError,
+        {data: BodyType<UserProfileInput>},
+        TContext
+      > => {
+      return useMutation(getUpdateMyProfileMutationOptions(options));
+    }
+
+export const getCreateStaffRequestUrl = () => {
+
+
+
+
+  return `/api/me/staff-request`
+}
+
+/**
+ * @summary Request staff or counsellor verification
+ */
+export const createStaffRequest = async (staffRequestInput: StaffRequestInput, options?: Parameters<typeof customFetch>[1]): Promise<StaffRequest> => {
+
+  return customFetch<StaffRequest>(getCreateStaffRequestUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(staffRequestInput)
+  }
+);}
+
+
+
+
+
+export const getCreateStaffRequestMutationOptions = <TError = ErrorType<ErrorResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createStaffRequest>>, TError,{data: BodyType<StaffRequestInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof createStaffRequest>>, TError,{data: BodyType<StaffRequestInput>}, TContext> => {
+
+const mutationKey = ['createStaffRequest'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createStaffRequest>>, {data: BodyType<StaffRequestInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  createStaffRequest(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreateStaffRequestMutationResult = NonNullable<Awaited<ReturnType<typeof createStaffRequest>>>
+    export type CreateStaffRequestMutationBody = BodyType<StaffRequestInput>
+    export type CreateStaffRequestMutationError = ErrorType<ErrorResponse>
+
+    /**
+ * @summary Request staff or counsellor verification
+ */
+export const useCreateStaffRequest = <TError = ErrorType<ErrorResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createStaffRequest>>, TError,{data: BodyType<StaffRequestInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof createStaffRequest>>,
+        TError,
+        {data: BodyType<StaffRequestInput>},
+        TContext
+      > => {
+      return useMutation(getCreateStaffRequestMutationOptions(options));
+    }
+
+export const getGetMyAppointmentsUrl = () => {
+
+
+
+
+  return `/api/me/appointments`
+}
+
+/**
+ * @summary List the signed-in user's appointment requests
+ */
+export const getMyAppointments = async ( options?: Parameters<typeof customFetch>[1]): Promise<Appointment[]> => {
+
+  return customFetch<Appointment[]>(getGetMyAppointmentsUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetMyAppointmentsQueryKey = () => {
+    return [
+    `/api/me/appointments`
+    ] as const;
+    }
+
+
+export const getGetMyAppointmentsQueryOptions = <TData = Awaited<ReturnType<typeof getMyAppointments>>, TError = ErrorType<ErrorResponse>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getMyAppointments>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetMyAppointmentsQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getMyAppointments>>> = ({ signal }) => getMyAppointments({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getMyAppointments>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetMyAppointmentsQueryResult = NonNullable<Awaited<ReturnType<typeof getMyAppointments>>>
+export type GetMyAppointmentsQueryError = ErrorType<ErrorResponse>
+
+
+/**
+ * @summary List the signed-in user's appointment requests
+ */
+
+export function useGetMyAppointments<TData = Awaited<ReturnType<typeof getMyAppointments>>, TError = ErrorType<ErrorResponse>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getMyAppointments>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetMyAppointmentsQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getGetAdminStaffRequestsUrl = (params?: GetAdminStaffRequestsParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/admin/staff-requests?${stringifiedParams}` : `/api/admin/staff-requests`
+}
+
+/**
+ * @summary List staff and counsellor verification requests
+ */
+export const getAdminStaffRequests = async (params?: GetAdminStaffRequestsParams, options?: Parameters<typeof customFetch>[1]): Promise<StaffRequest[]> => {
+
+  return customFetch<StaffRequest[]>(getGetAdminStaffRequestsUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetAdminStaffRequestsQueryKey = (params?: GetAdminStaffRequestsParams,) => {
+    return [
+    `/api/admin/staff-requests`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getGetAdminStaffRequestsQueryOptions = <TData = Awaited<ReturnType<typeof getAdminStaffRequests>>, TError = ErrorType<unknown>>(params?: GetAdminStaffRequestsParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getAdminStaffRequests>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetAdminStaffRequestsQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getAdminStaffRequests>>> = ({ signal }) => getAdminStaffRequests(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getAdminStaffRequests>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetAdminStaffRequestsQueryResult = NonNullable<Awaited<ReturnType<typeof getAdminStaffRequests>>>
+export type GetAdminStaffRequestsQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary List staff and counsellor verification requests
+ */
+
+export function useGetAdminStaffRequests<TData = Awaited<ReturnType<typeof getAdminStaffRequests>>, TError = ErrorType<unknown>>(
+ params?: GetAdminStaffRequestsParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getAdminStaffRequests>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetAdminStaffRequestsQueryOptions(params,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getUpdateAdminStaffRequestUrl = (id: number,) => {
+
+
+
+
+  return `/api/admin/staff-requests/${id}`
+}
+
+/**
+ * @summary Approve or reject a staff verification request
+ */
+export const updateAdminStaffRequest = async (id: number,
+    staffRequestUpdate: StaffRequestUpdate, options?: Parameters<typeof customFetch>[1]): Promise<StaffRequest> => {
+
+  return customFetch<StaffRequest>(getUpdateAdminStaffRequestUrl(id),
+  {
+    ...options,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(staffRequestUpdate)
+  }
+);}
+
+
+
+
+
+export const getUpdateAdminStaffRequestMutationOptions = <TError = ErrorType<ErrorResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateAdminStaffRequest>>, TError,{id: number;data: BodyType<StaffRequestUpdate>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateAdminStaffRequest>>, TError,{id: number;data: BodyType<StaffRequestUpdate>}, TContext> => {
+
+const mutationKey = ['updateAdminStaffRequest'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateAdminStaffRequest>>, {id: number;data: BodyType<StaffRequestUpdate>}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  updateAdminStaffRequest(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateAdminStaffRequestMutationResult = NonNullable<Awaited<ReturnType<typeof updateAdminStaffRequest>>>
+    export type UpdateAdminStaffRequestMutationBody = BodyType<StaffRequestUpdate>
+    export type UpdateAdminStaffRequestMutationError = ErrorType<ErrorResponse>
+
+    /**
+ * @summary Approve or reject a staff verification request
+ */
+export const useUpdateAdminStaffRequest = <TError = ErrorType<ErrorResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateAdminStaffRequest>>, TError,{id: number;data: BodyType<StaffRequestUpdate>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof updateAdminStaffRequest>>,
+        TError,
+        {id: number;data: BodyType<StaffRequestUpdate>},
+        TContext
+      > => {
+      return useMutation(getUpdateAdminStaffRequestMutationOptions(options));
     }
 
 export const getCreateContactMessageUrl = () => {
